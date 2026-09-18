@@ -468,10 +468,13 @@
                 })
                 .then(clan => {
                     const updated = new Date(clan.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                    document.getElementById('title').textContent =
-                        activeView === 'clan' ? `${clan.name} roster` : 'League Player Leaderboard';
+                    document.getElementById('title').textContent = activeView === 'clan'
+                        ? `${clan.name} roster`
+                        : activeView === 'clan-players'
+                            ? 'Clan Player Leaderboard'
+                            : 'League Player Leaderboard';
                     document.getElementById('subtitle').textContent = activeView === 'clan-players'
-                        ? `${clan.memberCount} Clan Battle contributors · ${clan.sampledClans || 0} sampled clans`
+                        ? `${clan.memberCount} Clan Battle contributors${clan.sampledClans ? ` · ${clan.sampledClans} sampled clans` : ''}`
                         : `${clan.memberCount} players · ranked by points`;
                     document.getElementById('group-header').textContent = clan.groupLabel;
                     currentMembers = clan.members.map((member, index) => ({ ...member, rank: index + 1 }));
