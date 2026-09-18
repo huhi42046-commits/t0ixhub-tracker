@@ -292,11 +292,32 @@ async function getLeagueData() {
 }
 
 async function getClanPlayersData() {
-    const response = await fetch('https://ps99.biggamesapi.io/v1/clans/players');
-    if (!response.ok) throw new Error('Could not load Clan Battle players.');
+    const aggregateResponse = await fetch('https://ps99.biggamesapi.io/v1/clans/players');
+    if (!aggregateResponse.ok) throw new Error('Could not load Clan Battle players.');
 
-    const result = await response.json();
-    const players = result.data?.players || [];
+    const aggregate = await aggregateResponse.json();
+    const battleId = aggregate.data?.activeBattleConfigName;
+    let players = aggregate.data?.players || [];
+    let sampledClans = aggregate.data?.sampledClans || 0;
+
+    // The aggregate covers 25 clans. When a live battle identifier is available,
+    // the battle detail API expands coverage to the top 100 clans and returns its
+    // official ranked top-player list (up to 200 contributors).
+    if (battleId && /^[A-Za-z0-9_]+$/.test(battleId)) {
+        const battleResponse = await fetch(`https://ps99.biggamesapi.io/v1/clans/battles/${encodeURIComponent(battleId)}`);
+        if (battleResponse.ok) {
+            const battle = await battleResponse.json();
+            const battleData = battle.data || {};
+            players = (battleData.topPlayers || []).map(player => ({
+                UserID: player.userId,
+                DisplayName: player.displayName,
+                ActiveBattlePoints: player.points,
+                Clan: { Name: player.clan?.name || 'Unknown' }
+            }));
+            sampledClans = battleData.stats?.sampledClans || sampledClans;
+        }
+    }
+
     const userIds = players.map(player => player.UserID).filter(Number.isFinite);
     const missingNames = players
         .filter(player => !player.DisplayName || player.DisplayName === String(player.UserID))
@@ -331,8 +352,8 @@ async function getClanPlayersData() {
         memberCount: rankedMembers.length,
         updatedAt: getPointUpdatedAt('clan-battle-players', rankedMembers),
         members: rankedMembers,
-        battleId: result.data?.activeBattleConfigName || null,
-        sampledClans: result.data?.sampledClans || 0
+        battleId: battleId || null,
+        sampledClans
     };
 }
 
