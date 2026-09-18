@@ -32,6 +32,18 @@ const pointLastUpdated = new Map();
 const clanActivityState = new Map();
 const leagueActivityState = new Map();
 const clanBattleActivityState = new Map();
+// A full top-clan scan needs one legacy API request per clan. Keep the raw
+// contribution list in memory so the browser's five-second refresh does not
+// create another 75-request burst.
+const clanPlayerRosterCache = {
+    members: [],
+    battleId: null,
+    sampledClans: 0,
+    refreshedAt: 0,
+    inFlight: null
+};
+const clanPlayerRosterRefreshMs = 3 * 60 * 1000;
+const clanPlayerClanLimit = 75;
 const enchantLoadoutCache = new Map();
 const enchantLookupInFlight = new Set();
 const enchantRefreshMs = 10 * 60 * 1000;
@@ -291,37 +303,102 @@ async function getLeagueData() {
     };
 }
 
-async function getClanPlayersData() {
+async function refreshClanPlayerRoster() {
     const aggregateResponse = await fetch('https://ps99.biggamesapi.io/v1/clans/players');
     if (!aggregateResponse.ok) throw new Error('Could not load Clan Battle players.');
 
     const aggregate = await aggregateResponse.json();
     const battleId = aggregate.data?.activeBattleConfigName;
-    let players = aggregate.data?.players || [];
     let sampledClans = aggregate.data?.sampledClans || 0;
+    let members = [];
 
-    // The aggregate covers 25 clans. When a live battle identifier is available,
-    // the battle detail API expands coverage to the top 100 clans and returns its
-    // official ranked top-player list (up to 200 contributors).
+    // The battle endpoint supplies the official ranked clans. Its topPlayers
+    // list is capped at 200, so use the supported legacy clan-detail endpoint
+    // for every selected clan's complete Contribution.Battle array instead.
     if (battleId && /^[A-Za-z0-9_]+$/.test(battleId)) {
         const battleResponse = await fetch(`https://ps99.biggamesapi.io/v1/clans/battles/${encodeURIComponent(battleId)}`);
         if (battleResponse.ok) {
             const battle = await battleResponse.json();
             const battleData = battle.data || {};
-            players = (battleData.topPlayers || []).map(player => ({
-                UserID: player.userId,
-                DisplayName: player.displayName,
-                ActiveBattlePoints: player.points,
-                Clan: { Name: player.clan?.name || 'Unknown' }
-            }));
             sampledClans = battleData.stats?.sampledClans || sampledClans;
+            const topClans = (battleData.topClans || []).slice(0, clanPlayerClanLimit);
+            const knownNames = new Map((battleData.topPlayers || [])
+                .filter(player => Number.isFinite(player.userId) && player.displayName)
+                .map(player => [player.userId, player.displayName]));
+            const collected = new Map();
+            let nextClan = 0;
+
+            // Four workers keep this scan below the API's 100 requests/minute
+            // guidance while still completing a 75-clan refresh quickly.
+            const worker = async () => {
+                while (nextClan < topClans.length) {
+                    const clan = topClans[nextClan++];
+                    if (!clan?.name) continue;
+                    try {
+                        const response = await fetch(`https://ps99.biggamesapi.io/api/clan/${encodeURIComponent(clan.name)}`);
+                        if (!response.ok) continue;
+                        const payload = await response.json();
+                        for (const contribution of payload.data?.Contribution?.Battle || []) {
+                            const userId = contribution?.UserID;
+                            if (!Number.isFinite(userId)) continue;
+                            const points = Number(contribution.Points) || 0;
+                            const existing = collected.get(userId);
+                            if (!existing || points > existing.points) {
+                                collected.set(userId, {
+                                    userId,
+                                    displayName: knownNames.get(userId) || String(userId),
+                                    group: clan.name,
+                                    points
+                                });
+                            }
+                        }
+                    } catch (error) {
+                        console.warn(`Could not load clan ${clan.name}:`, error.message);
+                    }
+                }
+            };
+            await Promise.all(Array.from({ length: 4 }, worker));
+            members = [...collected.values()];
         }
     }
 
-    const userIds = players.map(player => player.UserID).filter(Number.isFinite);
-    const missingNames = players
-        .filter(player => !player.DisplayName || player.DisplayName === String(player.UserID))
-        .map(player => player.UserID);
+    // If there is no active battle or the full scan fails, retain the existing
+    // top-25 aggregate rather than returning an empty table.
+    if (!members.length) {
+        members = (aggregate.data?.players || []).map(player => ({
+            userId: player.UserID,
+            displayName: player.DisplayName || String(player.UserID),
+            group: player.Clan?.Name || 'Unknown',
+            points: Number(player.ActiveBattlePoints) || 0
+        }));
+        sampledClans = aggregate.data?.sampledClans || sampledClans;
+    }
+
+    clanPlayerRosterCache.members = members;
+    clanPlayerRosterCache.battleId = battleId || null;
+    clanPlayerRosterCache.sampledClans = Math.min(sampledClans, clanPlayerClanLimit);
+    clanPlayerRosterCache.refreshedAt = Date.now();
+}
+
+async function getClanPlayersData() {
+    const stale = Date.now() - clanPlayerRosterCache.refreshedAt >= clanPlayerRosterRefreshMs;
+    if (stale && !clanPlayerRosterCache.inFlight) {
+        clanPlayerRosterCache.inFlight = refreshClanPlayerRoster()
+            .catch(error => {
+                if (!clanPlayerRosterCache.members.length) throw error;
+                console.warn('Clan roster refresh failed; keeping last successful scan:', error.message);
+            })
+            .finally(() => { clanPlayerRosterCache.inFlight = null; });
+    }
+    if (!clanPlayerRosterCache.members.length && clanPlayerRosterCache.inFlight) {
+        await clanPlayerRosterCache.inFlight;
+    }
+
+    const members = clanPlayerRosterCache.members;
+    const userIds = members.map(member => member.userId).filter(Number.isFinite);
+    const missingNames = members
+        .filter(member => !member.displayName || member.displayName === String(member.userId))
+        .map(member => member.userId);
     const cachedNames = new Map(missingNames
         .filter(userId => nameCache.has(userId))
         .map(userId => [userId, nameCache.get(userId)]));
@@ -332,17 +409,15 @@ async function getClanPlayersData() {
         .map(userId => [userId, avatarCache.get(userId)]));
     void resolveRobloxAvatars(userIds);
 
-    const members = players.map(player => ({
-        userId: player.UserID,
-        displayName: player.DisplayName && player.DisplayName !== String(player.UserID)
-            ? player.DisplayName
-            : cachedNames.get(player.UserID) || String(player.UserID),
-        group: player.Clan?.Name || 'Unknown',
-        avatarUrl: cachedAvatars.get(player.UserID) || null,
-        points: Number(player.ActiveBattlePoints) || 0
+    const displayMembers = members.map(member => ({
+        ...member,
+        displayName: member.displayName && member.displayName !== String(member.userId)
+            ? member.displayName
+            : cachedNames.get(member.userId) || String(member.userId),
+        avatarUrl: cachedAvatars.get(member.userId) || null
     }));
     const rankedMembers = addActivityStats(
-        addHourlyGains(members, clanBattlePointHistory, clanBattleTrackingStart),
+        addHourlyGains(displayMembers, clanBattlePointHistory, clanBattleTrackingStart),
         clanBattleActivityState
     ).sort((a, b) => b.points - a.points);
 
@@ -352,8 +427,9 @@ async function getClanPlayersData() {
         memberCount: rankedMembers.length,
         updatedAt: getPointUpdatedAt('clan-battle-players', rankedMembers),
         members: rankedMembers,
-        battleId: battleId || null,
-        sampledClans
+        battleId: clanPlayerRosterCache.battleId,
+        sampledClans: clanPlayerRosterCache.sampledClans,
+        rosterRefreshedAt: clanPlayerRosterCache.refreshedAt
     };
 }
 
