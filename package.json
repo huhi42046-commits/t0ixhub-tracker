@@ -1,0 +1,12 @@
+{
+  "name": "t0ixhub-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pet Simulator 99 clan and league tracker",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

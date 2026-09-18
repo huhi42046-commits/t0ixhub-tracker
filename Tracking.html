@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C0LD Clan Roster</title>
+    <style>
+        :root { color-scheme: dark; }
+        * { box-sizing: border-box; }
+        body { margin: 0; min-height: 100vh; padding: 28px; background: radial-gradient(ellipse 70% 38% at 16% -10%, rgba(112, 69, 216, .36), transparent 68%), radial-gradient(ellipse 55% 32% at 91% 5%, rgba(0, 184, 194, .22), transparent 72%), radial-gradient(circle at 48% 104%, rgba(243, 177, 59, .10), transparent 36%), #090a0f; color: #e9e9ef; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        .page { max-width: 1550px; margin: 0 auto; }
+        #list-view::before, #detail-view::before { content: ""; display: block; height: 4px; margin-bottom: 22px; border-radius: 999px; background: linear-gradient(90deg, #8b5cf6 0 22%, #22d3ee 22% 46%, #48e38b 46% 68%, #f6c84e 68% 84%, #fb7185 84%); box-shadow: 0 0 22px rgba(139,92,246,.4); }
+        .topbar { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 20px; }
+        .eyebrow { margin: 0 0 5px; color: #8d91a1; font-size: 11px; font-weight: 750; letter-spacing: .11em; text-transform: uppercase; }
+        h1 { margin: 0; color: #f6f3ff; font-size: clamp(26px, 4vw, 38px); letter-spacing: -.045em; text-shadow: 0 2px 18px rgba(170,135,255,.2); }
+        .subtitle { margin: 7px 0 0; color: #a5a8b7; font-size: 13px; }
+        .live { display: flex; align-items: center; gap: 9px; padding: 10px 12px; border: 1px solid #344051; border-radius: 10px; background: linear-gradient(135deg, rgba(18,24,39,.96), rgba(18,18,27,.96)); color: #d8d9e3; font-size: 12px; white-space: nowrap; box-shadow: 0 8px 22px rgba(0,0,0,.24), inset 0 1px rgba(255,255,255,.04); }
+        .tabs { display: flex; gap: 7px; margin-top: 16px; }
+        .tab { border: 1px solid #30313a; border-radius: 7px; padding: 8px 14px; background: #15151b; color: #989ba8; cursor: pointer; font: inherit; font-size: 12px; font-weight: 750; transition: .15s ease; }
+        .tab:hover { border-color: #6b5aa9; color: #ddd9ff; }
+        .tab.active { border-color: #9f7aea; background: linear-gradient(135deg, #5a3ba7, #33205f); color: #f9f7ff; box-shadow: 0 5px 16px rgba(110,72,210,.3); }
+        .developer-toggle { margin-left: 2px; border: 1px solid #3d3556; border-radius: 7px; padding: 8px 12px; background: #181522; color: #bda8ff; cursor: pointer; font: inherit; font-size: 12px; font-weight: 750; }
+        .developer-toggle.active { border-color: #a78bfa; background: #34245f; color: #f0ebff; }
+        .search { width: min(100%, 330px); margin-top: 14px; border: 1px solid #30313a; border-radius: 8px; padding: 10px 12px; background: #121217; color: #f0f0f5; font: inherit; font-size: 13px; outline: none; }
+        .search:focus { border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139, 92, 246, .16); }
+        .search::placeholder { color: #747786; }
+        .clan-search { display: flex; gap: 8px; margin-top: 10px; }
+        .clan-search[hidden] { display: none; }
+        .clan-search input { width: min(100%, 220px); border: 1px solid #30313a; border-radius: 7px; padding: 8px 10px; background: #121217; color: #f0f0f5; font: inherit; font-size: 12px; outline: none; }
+        .clan-search input:focus { border-color: #8b5cf6; }
+        .clan-search button { border: 1px solid #7450d8; border-radius: 7px; padding: 8px 12px; background: linear-gradient(135deg, #7651dc, #4f2d9d); color: #fff; cursor: pointer; font: inherit; font-size: 12px; font-weight: 750; box-shadow: 0 5px 14px rgba(92,59,181,.25); }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: #48e38b; box-shadow: 0 0 12px #48e38b; animation: pulse 1.8s ease-in-out infinite; }
+        .table-wrap { overflow-x: auto; border: 1px solid rgba(98,104,141,.46); border-radius: 14px; background: linear-gradient(180deg, rgba(24,26,40,.98), rgba(12,13,20,.98)); box-shadow: 0 20px 60px rgba(0, 0, 0, .36), inset 0 1px rgba(255,255,255,.045); }
+        table { width: 100%; min-width: 790px; border-collapse: collapse; }
+        thead { color: #abb1c8; font-size: 11px; letter-spacing: .06em; text-align: left; text-transform: uppercase; background: rgba(116,90,205,.09); }
+        th { padding: 14px 16px; font-weight: 800; border-bottom: 1px solid #36394d; }
+        td { padding: 12px 16px; border-bottom: 1px solid #272938; font-size: 13px; }
+        tbody tr { transition: background .18s ease, transform .18s ease, opacity .18s ease; }
+        tbody tr:nth-child(odd) { background: rgba(255,255,255,.025); }
+        tbody tr:hover { background: linear-gradient(90deg, rgba(139,92,246,.19), rgba(34,211,238,.09)); transform: translateX(2px); }
+        tbody tr:last-child td { border-bottom: 0; }
+        .rank { width: 64px; color: #f4f4f7; font-weight: 800; }
+        .rank::first-letter { color: #9fa8c6; }
+        .user { display: flex; align-items: center; gap: 10px; min-width: 230px; }
+        .avatar { width: 28px; height: 28px; display: grid; place-items: center; flex: 0 0 auto; border: 1px solid rgba(205,190,255,.22); border-radius: 8px; background: linear-gradient(135deg, #4f46a4, #3b2a68); color: #e5ddff; font-size: 12px; font-weight: 850; }
+        .avatar img { width: 100%; height: 100%; border-radius: 7px; object-fit: cover; }
+        .name { color: #77b7ff; font-weight: 750; }
+        .id { margin-top: 2px; color: #777a88; font-size: 10px; }
+        .clan { color: #f7d568; font-weight: 800; }
+        .points { color: #4cf0a2; font-size: 14px; font-weight: 850; font-variant-numeric: tabular-nums; text-shadow: 0 0 14px rgba(72,227,139,.2); }
+        .points-value { display: inline-block; min-width: 110px; padding: 5px 8px; border: 1px solid rgba(70,230,157,.15); border-radius: 7px; background: rgba(48,211,132,.06); }
+        .gain { color: #c1a8ff; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
+        .loadout { display: flex; flex-wrap: wrap; gap: 9px; min-width: 380px; }
+        .enchant-chip { position: relative; display: grid; width: 56px; height: 56px; place-items: center; overflow: visible; border: 1px solid rgba(110, 220, 255, .42); border-radius: 12px; background: linear-gradient(135deg, rgba(51, 87, 132, .72), rgba(67, 44, 117, .72)); box-shadow: inset 0 1px rgba(255,255,255,.1), 0 5px 13px rgba(0,0,0,.2); transition: transform .15s ease, border-color .15s ease; }
+        .enchant-chip:hover { z-index: 1; border-color: #71e6ff; transform: translateY(-3px) scale(1.08); }
+        .enchant-chip img { width: 48px; height: 48px; border-radius: 8px; object-fit: contain; image-rendering: auto; }
+        .enchant-fallback { color: #d9f4ff; font-size: 20px; font-weight: 900; }
+        .enchant-level { position: absolute; right: -5px; bottom: -5px; min-width: 22px; padding: 2px 4px; border: 1px solid #ffd96b; border-radius: 999px; background: #302650; color: #ffe69a; font-size: 10px; font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1.1; box-shadow: 0 2px 6px rgba(0,0,0,.45); }
+        .muted { color: #9a9ca8; }
+        .sync-status { color: #8ea1be; }
+        .sync-status strong { color: #d9e2f4; }
+        .row-fresh { animation: row-in .28s ease-out both; }
+        .skeleton-line { display: inline-block; width: min(210px, 70%); height: 12px; border-radius: 999px; background: linear-gradient(90deg, rgba(116,124,157,.10), rgba(150,162,201,.24), rgba(116,124,157,.10)); background-size: 220% 100%; animation: shimmer 1.2s linear infinite; }
+        @keyframes pulse { 50% { transform: scale(.72); box-shadow: 0 0 4px #48e38b; } }
+        @keyframes shimmer { to { background-position: -220% 0; } }
+        @keyframes row-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        .footer { display: flex; justify-content: space-between; gap: 12px; margin-top: 12px; color: #777a88; font-size: 11px; }
+        .pager { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 14px; }
+        .page-button { border: 1px solid #30313a; border-radius: 7px; padding: 8px 12px; background: #15151b; color: #d7d7df; cursor: pointer; font: inherit; font-size: 12px; font-weight: 750; }
+        .page-button:disabled { opacity: .4; cursor: not-allowed; }
+        .page-info { min-width: 90px; color: #a8aab6; font-size: 12px; text-align: center; }
+        .player-link { display: flex; align-items: center; gap: 10px; width: 100%; border: 0; padding: 0; background: transparent; color: inherit; cursor: pointer; text-align: left; font: inherit; }
+        .player-link:hover .name { color: #bda8ff; text-decoration: underline; }
+        .back-button { border: 1px solid #30313a; border-radius: 7px; padding: 8px 12px; background: #15151b; color: #d7d7df; cursor: pointer; font: inherit; font-size: 12px; font-weight: 750; }
+        .detail-header { display: flex; align-items: center; gap: 16px; margin: 20px 0; padding: 22px; border: 1px solid #34364c; border-radius: 14px; background: linear-gradient(110deg, rgba(87,60,160,.35), rgba(16,25,45,.85) 55%, rgba(13,66,69,.4)); box-shadow: inset 0 1px rgba(255,255,255,.04), 0 16px 45px rgba(0,0,0,.25); }
+        .detail-avatar { width: 64px; height: 64px; display: grid; place-items: center; border: 2px solid #42e0e8; border-radius: 16px; background: linear-gradient(135deg, #6141b3, #133f61); color: #f0edff; font-size: 26px; font-weight: 850; box-shadow: 0 0 0 6px rgba(66,224,232,.08), 0 0 28px rgba(139,92,246,.35); }
+        .detail-avatar img { width: 100%; height: 100%; border-radius: 13px; object-fit: cover; }
+        .detail-grid { display: grid; grid-template-columns: minmax(210px, .6fr) minmax(0, 1.4fr); gap: 16px; }
+        .detail-card { border: 1px solid #34364c; border-radius: 12px; background: linear-gradient(180deg, #151725, #101117); padding: 18px; box-shadow: inset 0 1px rgba(255,255,255,.025); }
+        .stat-row { display: flex; justify-content: space-between; gap: 10px; padding: 11px 10px; border-bottom: 1px solid #292b3c; color: #b0b4c4; font-size: 13px; }
+        .stat-row:nth-child(2n) { background: rgba(99,102,241,.065); }
+        .stat-row:last-child { border-bottom: 0; }
+        .stat-row strong { color: #f0f0f5; font-variant-numeric: tabular-nums; }
+        .stat-row:nth-child(2) strong, .stat-row:nth-child(5) strong, .stat-row:nth-child(11) strong { color: #4cf0a2; }
+        .stat-row:nth-child(6) strong, .stat-row:nth-child(7) strong, .stat-row:nth-child(8) strong { color: #c1a8ff; }
+        .chart-title { margin: 0 0 14px; color: #e9e9ef; font-size: 14px; letter-spacing: .02em; }
+        .chart-wrap { min-height: 360px; padding: 8px 0 0; border-radius: 8px; background: linear-gradient(180deg, rgba(30,33,46,.72), rgba(15,16,24,.42)); }
+        .chart { width: 100%; height: 360px; overflow: visible; }
+        .chart-grid { stroke: #383b50; stroke-width: 1; opacity: .8; }
+        .chart-line { fill: none; stroke: #21d4f3; stroke-width: 3.5; stroke-linejoin: round; stroke-linecap: round; filter: drop-shadow(0 0 6px rgba(33,212,243,.65)); }
+        .chart-area { fill: url(#chart-gradient); opacity: .5; }
+        .chart-dot { fill: #43e5ff; stroke: #162332; stroke-width: 3; }
+        .chart-final-dot { fill: #f6c84e; stroke: #fff0b1; stroke-width: 2; filter: drop-shadow(0 0 6px rgba(246,200,78,.8)); }
+        .chart-label { fill: #a7aac0; font-size: 12px; }
+        @media (max-width: 820px) { .detail-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 600px) { body { padding: 16px; } .topbar { align-items: start; flex-direction: column; } }
+    </style>
+</head>
+<body>
+    <main class="page" id="list-view">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Pet Simulator 99 · Live clan tracker</p>
+                <h1 id="title">C0LD roster</h1>
+                <p class="subtitle" id="subtitle">Loading clan members…</p>
+                <nav class="tabs" aria-label="Leaderboard view">
+                    <button class="tab active" data-view="clan" type="button">Clan</button>
+                    <button class="tab" data-view="league" type="button">League</button>
+                    <button class="tab" data-view="enchants" type="button">Enchant Loadouts</button>
+                    <button class="developer-toggle" id="developer-toggle" type="button">Developer: Off</button>
+                    <button class="developer-toggle" id="group-loadouts" type="button" hidden>Group Loadouts: Off</button>
+                </nav>
+                <form class="clan-search" id="clan-search">
+                    <input id="clan-tag" type="text" value="c0ld" maxlength="32" placeholder="Clan tag, e.g. c0ld" aria-label="Clan tag">
+                    <button type="submit">Load clan</button>
+                </form>
+                <input class="search" id="search" type="search" placeholder="Search Roblox user or ID" aria-label="Search leaderboard">
+            </div>
+            <div class="live"><span class="dot"></span><span id="timer">Next refresh 00:05</span></div>
+        </header>
+        <section class="table-wrap" aria-label="C0LD clan roster">
+            <table>
+                <thead id="table-head"><tr><th>#</th><th>Roblox user</th><th id="group-header">Clan</th><th>Points</th><th>Gained (60m)</th><th id="tracked-header" hidden>Tracked</th><th>Updated</th></tr></thead>
+                <tbody id="roster"><tr><td colspan="6" class="muted"><span class="skeleton-line"></span></td></tr></tbody>
+            </table>
+        </section>
+        <nav class="pager" id="pager" aria-label="Leaderboard pages">
+            <button class="page-button" id="previous-page" type="button">Previous</button>
+            <span class="page-info" id="page-info">Page 1 of 1</span>
+            <button class="page-button" id="next-page" type="button">Next</button>
+        </nav>
+        <footer class="footer"><span id="status">Connecting to clan API…</span><span>Refreshes every 5 seconds · 60m gains need one hour of history</span></footer>
+    </main>
+
+    <main class="page" id="detail-view" hidden>
+        <button class="back-button" id="back-button" type="button">← Back to leaderboard</button>
+        <header class="detail-header">
+            <div class="detail-avatar" id="detail-avatar">?</div>
+            <div><p class="eyebrow" id="detail-group">Player details</p><h1 id="detail-name">Loading player…</h1><p class="subtitle" id="detail-id"></p></div>
+        </header>
+        <section class="detail-grid">
+            <article class="detail-card" id="detail-stats"></article>
+            <article class="detail-card"><h2 class="chart-title">Tracked point history</h2><div class="chart-wrap" id="chart-wrap"></div></article>
+        </section>
+    </main>
+    <script>
+        const refreshSeconds = 5;
+        let secondsRemaining = refreshSeconds;
+        let isRefreshing = false;
+        let activeView = 'clan';
+        let currentMembers = [];
+        let currentGroupName = '';
+        let currentUpdated = '';
+        let currentPage = 1;
+        const leaguePageSize = 100;
+        let selectedClan = 'c0ld';
+        let developerMode = false;
+        let currentEnchantPlayers = [];
+        let enchantRefreshedAt = 0;
+        let groupEnchantLoadouts = false;
+        let lastRosterSignature = '';
+        let lastSyncedAt = 0;
+
+        const rosterCacheKey = () => `t0ixhub-roster:${activeView}:${selectedClan.toLowerCase()}`;
+        const writeRosterCache = () => {
+            if (activeView === 'enchants' || !currentMembers.length) return;
+            try {
+                sessionStorage.setItem(rosterCacheKey(), JSON.stringify({
+                    savedAt: Date.now(), name: currentGroupName, updated: currentUpdated, members: currentMembers
+                }));
+            } catch { /* A full or disabled session store should not block the tracker. */ }
+        };
+        const restoreRosterCache = () => {
+            if (activeView === 'enchants') return false;
+            try {
+                const saved = JSON.parse(sessionStorage.getItem(rosterCacheKey()) || 'null');
+                if (!saved?.members?.length || Date.now() - saved.savedAt > 20 * 60 * 1000) return false;
+                currentMembers = saved.members;
+                currentGroupName = saved.name || currentGroupName;
+                currentUpdated = saved.updated || 'cached';
+                document.getElementById('title').textContent = activeView === 'clan' ? `${currentGroupName} roster` : currentGroupName;
+                document.getElementById('subtitle').textContent = `${currentMembers.length} players · showing saved results while syncing`;
+                renderRoster(false);
+                document.getElementById('status').innerHTML = '<span class="sync-status">Showing saved roster · <strong>syncing live points…</strong></span>';
+                return true;
+            } catch { return false; }
+        };
+
+        const escapeHtml = value => String(value).replace(/[&<>'"]/g, character => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+        })[character]);
+        const robloxAssetUrl = asset => {
+            const value = String(asset || '');
+            const match = value.match(/^rbxassetid:\/\/(\d+)$/i);
+            return match ? `https://assetdelivery.roblox.com/v1/asset/?id=${match[1]}` : value;
+        };
+        const updateTimer = () => {
+            document.getElementById('timer').textContent = `Next refresh 00:0${secondsRemaining}`;
+        };
+        const formatDuration = milliseconds => {
+            const totalMinutes = Math.floor((milliseconds || 0) / 60000);
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
+            return hours ? `${hours}h ${minutes}m` : `${minutes}m`;
+        };
+        const setLeaderboardHeader = () => {
+            document.getElementById('table-head').innerHTML = `<tr><th>#</th><th>Roblox user</th><th id="group-header">${activeView === 'league' ? 'League' : 'Clan'}</th><th>Points</th><th>Gained (60m)</th><th id="tracked-header" ${developerMode ? '' : 'hidden'}>Tracked</th><th>Updated</th></tr>`;
+        };
+        const setEnchantHeader = () => {
+            document.getElementById('table-head').innerHTML = '<tr><th>Roblox user</th><th>League</th><th>Points</th><th>Public enchant loadout</th></tr>';
+        };
+        const loadoutKey = player => player.enchants
+            .map(enchant => `${enchant.id || enchant.name}::${enchant.level ?? ''}`)
+            .sort((a, b) => a.localeCompare(b))
+            .join('|');
+        const groupedEnchantPlayers = players => {
+            const groups = new Map();
+            for (const player of players) {
+                const key = loadoutKey(player);
+                if (!groups.has(key)) groups.set(key, { leader: player, players: [] });
+                groups.get(key).players.push(player);
+            }
+            return [...groups.values()];
+        };
+        const renderEnchantRoster = () => {
+            const query = document.getElementById('search').value.trim().toLowerCase();
+            const players = currentEnchantPlayers.filter(player =>
+                player.displayName.toLowerCase().includes(query) || String(player.userId).includes(query) ||
+                player.league.toLowerCase().includes(query) ||
+                player.enchants.some(enchant => enchant.name.toLowerCase().includes(query))
+            );
+            const rows = groupEnchantLoadouts ? groupedEnchantPlayers(players) : players.map(player => ({ leader: player, players: [player] }));
+            const pageCount = Math.max(Math.ceil(rows.length / leaguePageSize), 1);
+            currentPage = Math.min(currentPage, pageCount);
+            const pageRows = rows.slice((currentPage - 1) * leaguePageSize, currentPage * leaguePageSize);
+            document.getElementById('roster').innerHTML = rows.length ? pageRows.map((row, index) => {
+                const player = row.leader;
+                const avatar = player.avatarUrl
+                    ? `<img src="${escapeHtml(player.avatarUrl)}" alt="">`
+                    : escapeHtml(player.displayName.charAt(0).toUpperCase());
+                const enchants = player.enchants.length
+                    ? player.enchants.map(enchant => {
+                        const tooltip = `${enchant.name}${enchant.level !== null ? ` · Level ${enchant.level}` : ''}${enchant.paid ? ' · Paid slot' : ''}`;
+                        const image = enchant.icon
+                            ? `<img src="${escapeHtml(robloxAssetUrl(enchant.icon))}" alt="" loading="lazy">`
+                            : `<span class="enchant-fallback">${escapeHtml(enchant.name.charAt(0).toUpperCase())}</span>`;
+                        return `<span class="enchant-chip" title="${escapeHtml(tooltip)}" aria-label="${escapeHtml(tooltip)}">${image}${enchant.level !== null ? `<span class="enchant-level">${escapeHtml(enchant.level)}</span>` : ''}</span>`;
+                    }).join('')
+                    : '<span class="muted">No equipped enchants reported</span>';
+                const matchingPlayers = row.players.length;
+                const names = matchingPlayers > 1
+                    ? `${matchingPlayers} players · ${row.players.slice(0, 3).map(member => `${escapeHtml(member.displayName)} #${member.globalRank || '—'}`).join(', ')}${matchingPlayers > 3 ? '…' : ''}`
+                    : `${escapeHtml(player.displayName)} #${player.globalRank || '—'}`;
+                const leagues = [...new Set(row.players.map(member => member.league))];
+                return `<tr>
+                    <td><div class="user"><div class="avatar">${avatar}</div><div><div class="name">${names}</div><div class="id">${matchingPlayers > 1 ? 'Same equipped enchant set' : `Roblox ID ${player.userId}`}</div></div></div></td>
+                    <td class="clan">${escapeHtml(leagues.length === 1 ? leagues[0] : 'Multiple')}</td>
+                    <td class="points">${matchingPlayers > 1 ? `${matchingPlayers} players` : Number(player.points).toLocaleString()}</td>
+                    <td><div class="loadout">${enchants}</div></td>
+                </tr>`;
+            }).join('') : '<tr><td colspan="4" class="muted">No public loadouts match this search.</td></tr>';
+            const pager = document.getElementById('pager');
+            pager.hidden = rows.length <= leaguePageSize;
+            document.getElementById('page-info').textContent = `Page ${currentPage} of ${pageCount}`;
+            document.getElementById('previous-page').disabled = currentPage === 1;
+            document.getElementById('next-page').disabled = currentPage === pageCount;
+        };
+        const renderRoster = (animate = false) => {
+            if (activeView === 'enchants') {
+                renderEnchantRoster();
+                return;
+            }
+            const query = document.getElementById('search').value.trim().toLowerCase();
+            const members = currentMembers.filter(member =>
+                member.displayName.toLowerCase().includes(query) || String(member.userId).includes(query)
+            );
+            const pageSize = activeView === 'league' ? leaguePageSize : Math.max(members.length, 1);
+            const pageCount = Math.max(Math.ceil(members.length / pageSize), 1);
+            currentPage = Math.min(currentPage, pageCount);
+            const pageMembers = members.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+            const signature = JSON.stringify({
+                view: activeView, query, page: currentPage, developerMode,
+                members: pageMembers.map(member => [member.userId, member.displayName, member.avatarUrl, member.points, member.hourlyGain, member.trackedGain, member.group, member.rank, member.updatedAt])
+            });
+
+            const pager = document.getElementById('pager');
+            pager.hidden = activeView !== 'league' || members.length <= leaguePageSize;
+            document.getElementById('page-info').textContent = `Page ${currentPage} of ${pageCount}`;
+            document.getElementById('previous-page').disabled = currentPage === 1;
+            document.getElementById('next-page').disabled = currentPage === pageCount;
+            if (signature === lastRosterSignature) return;
+            lastRosterSignature = signature;
+
+            document.getElementById('roster').innerHTML = members.length ? pageMembers.map(member => {
+                const name = escapeHtml(member.displayName);
+                const initial = escapeHtml(member.displayName.charAt(0).toUpperCase());
+                const avatar = member.avatarUrl
+                    ? `<img src="${escapeHtml(member.avatarUrl)}" alt="">`
+                    : initial;
+                return `<tr class="${animate ? 'row-fresh' : ''}">
+                    <td class="rank">#${member.rank}</td>
+                    <td><button class="player-link" type="button" data-player-id="${member.userId}"><div class="avatar">${avatar}</div><div><div class="name">${name}</div><div class="id">Roblox ID ${member.userId}</div></div></button></td>
+                    <td class="clan">${escapeHtml(member.group || currentGroupName)}</td>
+                    <td class="points"><span class="points-value">${member.points.toLocaleString()}</span></td>
+                    <td class="gain">${member.hourlyGain === null ? 'Collecting…' : `+${member.hourlyGain.toLocaleString()}`}</td>
+                    ${developerMode ? `<td class="gain">+${member.trackedGain.toLocaleString()}</td>` : ''}
+                    <td class="muted">${currentUpdated}</td>
+                </tr>`;
+            }).join('') : `<tr><td colspan="${developerMode ? 7 : 6}" class="muted">No players match this search.</td></tr>`;
+
+        };
+        const renderChart = history => {
+            const chartWrap = document.getElementById('chart-wrap');
+            if (history.length < 2) {
+                chartWrap.innerHTML = '<p class="muted">Collecting point samples for this player…</p>';
+                return;
+            }
+            const limit = 180;
+            const step = Math.max(1, Math.ceil(history.length / limit));
+            const samples = history.filter((_, index) => index % step === 0 || index === history.length - 1);
+            const width = 960;
+            const height = 360;
+            const padding = { top: 20, right: 22, bottom: 42, left: 74 };
+            const points = samples.map(entry => entry.points);
+            const times = samples.map(entry => entry.timestamp);
+            const rawMin = Math.min(...points);
+            const rawMax = Math.max(...points);
+            const buffer = Math.max((rawMax - rawMin) * .12, rawMax * .015, 1);
+            const min = Math.max(0, rawMin - buffer);
+            const max = rawMax + buffer;
+            const valueRange = Math.max(max - min, 1);
+            const timeRange = Math.max(times[times.length - 1] - times[0], 1);
+            const toX = timestamp => padding.left + ((timestamp - times[0]) / timeRange) * (width - padding.left - padding.right);
+            const toY = value => height - padding.bottom - ((value - min) / valueRange) * (height - padding.top - padding.bottom);
+            const coordinates = samples.map(entry => ({ x: toX(entry.timestamp), y: toY(entry.points) }));
+            const smoothPath = coordinates.map((point, index) => {
+                if (index === 0) return `M ${point.x.toFixed(1)} ${point.y.toFixed(1)}`;
+                const previous = coordinates[index - 1];
+                const midpoint = (previous.x + point.x) / 2;
+                return `C ${midpoint.toFixed(1)} ${previous.y.toFixed(1)}, ${midpoint.toFixed(1)} ${point.y.toFixed(1)}, ${point.x.toFixed(1)} ${point.y.toFixed(1)}`;
+            }).join(' ');
+            const areaPath = `${smoothPath} L ${coordinates[coordinates.length - 1].x.toFixed(1)} ${height - padding.bottom} L ${coordinates[0].x.toFixed(1)} ${height - padding.bottom} Z`;
+            const formatPoints = value => value >= 1000000 ? `${(value / 1000000).toFixed(2)}M` : value >= 1000 ? `${(value / 1000).toFixed(1)}K` : value.toLocaleString();
+            const horizontalGrid = Array.from({ length: 5 }, (_, index) => {
+                const ratio = index / 4;
+                const y = padding.top + ratio * (height - padding.top - padding.bottom);
+                const value = max - ratio * (max - min);
+                return `<line class="chart-grid" x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}"/><text class="chart-label" text-anchor="end" x="${padding.left - 10}" y="${y + 4}">${formatPoints(value)}</text>`;
+            }).join('');
+            const verticalGrid = Array.from({ length: 7 }, (_, index) => {
+                const ratio = index / 6;
+                const x = padding.left + ratio * (width - padding.left - padding.right);
+                const timestamp = times[0] + ratio * timeRange;
+                const ageMinutes = Math.round((times[times.length - 1] - timestamp) / 60000);
+                const label = index === 6 ? 'Now' : ageMinutes >= 60 ? `-${Math.round(ageMinutes / 60)}h` : `-${ageMinutes}m`;
+                return `<line class="chart-grid" x1="${x}" y1="${padding.top}" x2="${x}" y2="${height - padding.bottom}"/><text class="chart-label" text-anchor="middle" x="${x}" y="${height - 13}">${label}</text>`;
+            }).join('');
+            const dots = coordinates.filter((_, index) => index % Math.max(1, Math.floor(coordinates.length / 18)) === 0)
+                .map(point => `<circle class="chart-dot" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="3.7"/>`).join('');
+            const finalPoint = coordinates[coordinates.length - 1];
+            chartWrap.innerHTML = `<svg class="chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Tracked player points graph">
+                <defs><linearGradient id="chart-gradient" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#21d4f3" stop-opacity=".65"/><stop offset="1" stop-color="#6d4bd8" stop-opacity="0"/></linearGradient></defs>
+                ${horizontalGrid}${verticalGrid}
+                <path class="chart-area" d="${areaPath}"/><path class="chart-line" d="${smoothPath}"/>
+                ${dots}<circle class="chart-final-dot" cx="${finalPoint.x.toFixed(1)}" cy="${finalPoint.y.toFixed(1)}" r="5"/>
+            </svg>`;
+        };
+        const formatEta = minutes => {
+            if (!Number.isFinite(minutes) || minutes < 0) return 'N/A';
+            if (minutes < 60) return `${Math.max(1, Math.ceil(minutes))}m`;
+            const hours = Math.floor(minutes / 60);
+            const remainingMinutes = Math.ceil(minutes % 60);
+            return hours >= 24 ? `${Math.floor(hours / 24)}d ${hours % 24}h` : `${hours}h ${remainingMinutes}m`;
+        };
+        const buildRankPressure = member => {
+            const ordered = [...currentMembers].sort((a, b) => a.rank - b.rank);
+            const index = ordered.findIndex(player => player.userId === member.userId);
+            const ahead = index > 0 ? ordered[index - 1] : null;
+            const behind = index >= 0 && index < ordered.length - 1 ? ordered[index + 1] : null;
+
+            const compare = (target, isAhead) => {
+                if (!target) return isAhead
+                    ? { label: 'Player ahead', text: 'You are #1', eta: '—' }
+                    : { label: 'Player behind', text: 'No player below', eta: '—' };
+                if (member.hourlyGain === null || target.hourlyGain === null) {
+                    return { label: isAhead ? 'Player ahead' : 'Player behind', text: 'Collecting 60m data…', eta: '—' };
+                }
+
+                const selectedRate = member.hourlyGain;
+                const targetRate = target.hourlyGain;
+                const rateDifference = isAhead ? selectedRate - targetRate : targetRate - selectedRate;
+                const gap = isAhead ? target.points - member.points : member.points - target.points;
+                const targetName = escapeHtml(target.displayName);
+
+                if (rateDifference <= 0) {
+                    return {
+                        label: isAhead ? `Chasing #${target.rank}` : `Pressure from #${target.rank}`,
+                        text: isAhead ? `${targetName} is not being caught` : `${targetName} is not gaining on you`,
+                        eta: 'No ETA'
+                    };
+                }
+
+                const etaMinutes = gap / (rateDifference / 60);
+                return {
+                    label: isAhead ? `Chasing #${target.rank}` : `Pressure from #${target.rank}`,
+                    text: isAhead ? `Gaining on ${targetName}` : `${targetName} is gaining on you`,
+                    eta: `${formatEta(etaMinutes)}`
+                };
+            };
+
+            return { ahead: compare(ahead, true), behind: compare(behind, false) };
+        };
+        const showPlayer = member => {
+            document.getElementById('list-view').hidden = true;
+            document.getElementById('detail-view').hidden = false;
+            const detailAvatar = document.getElementById('detail-avatar');
+            detailAvatar.replaceChildren();
+            if (member.avatarUrl) {
+                const image = document.createElement('img');
+                image.src = member.avatarUrl;
+                image.alt = '';
+                detailAvatar.appendChild(image);
+            } else {
+                detailAvatar.textContent = member.displayName.charAt(0).toUpperCase();
+            }
+            document.getElementById('detail-name').textContent = member.displayName;
+            document.getElementById('detail-group').textContent = member.group || currentGroupName;
+            document.getElementById('detail-id').textContent = `Roblox ID ${member.userId} · Rank #${member.rank}`;
+            const pressure = buildRankPressure(member);
+            document.getElementById('detail-stats').innerHTML = `
+                <div class="stat-row"><span>Global rank</span><strong>#${member.rank}</strong></div>
+                <div class="stat-row"><span>Player points</span><strong>${member.points.toLocaleString()}</strong></div>
+                <div class="stat-row"><span>${activeView === 'league' ? 'League' : 'Clan'}</span><strong>${escapeHtml(member.group || currentGroupName)}</strong></div>
+                <div class="stat-row"><span>Leaderboard rank</span><strong>#${member.rank}</strong></div>
+                <div class="stat-row"><span>1 hour</span><strong>${member.hourlyGain === null ? 'Collecting…' : `+${member.hourlyGain.toLocaleString()}`}</strong></div>
+                <div class="stat-row"><span>${pressure.ahead.label}</span><strong>${pressure.ahead.text}</strong></div>
+                <div class="stat-row"><span>ETA to pass</span><strong>${pressure.ahead.eta}</strong></div>
+                <div class="stat-row"><span>${pressure.behind.label}</span><strong>${pressure.behind.text}</strong></div>
+                <div class="stat-row"><span>ETA until passed</span><strong>${pressure.behind.eta}</strong></div>
+                <div class="stat-row"><span>6 hours</span><strong>${member.sixHourGain === null ? 'Collecting…' : `+${member.sixHourGain.toLocaleString()}`}</strong></div>
+                <div class="stat-row"><span>12 hours</span><strong>${member.twelveHourGain === null ? 'Collecting…' : `+${member.twelveHourGain.toLocaleString()}`}</strong></div>
+                <div class="stat-row"><span>24 hours</span><strong>${member.dayGain === null ? 'Collecting…' : `+${member.dayGain.toLocaleString()}`}</strong></div>
+                <div class="stat-row"><span>Uptime</span><strong>${formatDuration(member.uptimeMs)}</strong></div>
+                <div class="stat-row"><span>Downtime</span><strong>${formatDuration(member.downtimeMs)}</strong></div>
+                <div class="stat-row"><span>Activity</span><strong>${member.activity === 'downtime' ? 'Idle' : 'Active'}</strong></div>
+                <div class="stat-row"><span>Tracked this session</span><strong>+${member.trackedGain.toLocaleString()}</strong></div>`;
+            document.getElementById('chart-wrap').innerHTML = '<p class="muted">Loading point history…</p>';
+            fetch(`/api/history/${member.userId}?scope=${activeView}`)
+                .then(response => response.json())
+                .then(data => renderChart(data.history || []))
+                .catch(() => { document.getElementById('chart-wrap').innerHTML = '<p class="muted">Could not load point history.</p>'; });
+        };
+        const loadRoster = () => {
+            if (isRefreshing) return;
+            isRefreshing = true;
+            if (activeView !== 'enchants' && !currentMembers.length) document.getElementById('status').textContent = `Fetching ${activeView} roster…`;
+            const endpoint = activeView === 'clan'
+                ? `/api/clan?name=${encodeURIComponent(selectedClan)}`
+                : '/api/league';
+            fetch(endpoint)
+                .then(response => {
+                    if (!response.ok) throw new Error(`Request failed: ${response.status}`);
+                    return response.json();
+                })
+                .then(clan => {
+                    const updated = new Date(clan.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    document.getElementById('title').textContent =
+                        activeView === 'clan' ? `${clan.name} roster` : clan.name;
+                    document.getElementById('subtitle').textContent = `${clan.memberCount} players · ranked by points`;
+                    document.getElementById('group-header').textContent = clan.groupLabel;
+                    currentMembers = clan.members.map((member, index) => ({ ...member, rank: index + 1 }));
+                    currentGroupName = clan.name;
+                    currentUpdated = updated;
+                    if (activeView !== 'enchants') {
+                        setLeaderboardHeader();
+                        renderRoster(true);
+                        writeRosterCache();
+                        lastSyncedAt = Date.now();
+                        document.getElementById('status').innerHTML = `<span class="sync-status"><strong>Live data synced</strong> · ${clan.memberCount} ${activeView} players · ${updated}</span>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                    if (activeView !== 'enchants') document.getElementById('status').textContent = currentMembers.length
+                        ? 'Live update delayed · showing the last successful results.'
+                        : `Could not load ${activeView} leaderboard.`;
+                })
+                .finally(() => { isRefreshing = false; });
+        };
+        const loadEnchantLoadouts = () => {
+            document.getElementById('status').textContent = currentEnchantPlayers.length
+                ? 'Checking whether public enchant loadouts need a refresh…'
+                : 'Scanning public enchant loadouts for league players… this can take a moment.';
+            fetch('/api/league/enchants')
+                .then(response => {
+                    if (!response.ok) throw new Error(`Request failed: ${response.status}`);
+                    return response.json();
+                })
+                .then(data => {
+                    currentEnchantPlayers = data.players || [];
+                    enchantRefreshedAt = data.refreshedAt || Date.now();
+                    setEnchantHeader();
+                    renderEnchantRoster();
+                    const refreshed = new Date(enchantRefreshedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    document.getElementById('title').textContent = 'League enchant loadouts';
+                    document.getElementById('subtitle').textContent = `${data.playerCount || 0} public loadouts from ${data.scannedPlayerCount || 0} top league players · refreshes every ${data.refreshEveryMinutes || 10} minutes`;
+                    document.getElementById('status').textContent = `Scanned ${data.scannedPlayerCount || 0} top league players · showing ${data.playerCount || 0} public loadouts · last scan ${refreshed}.`;
+                })
+                .catch(error => {
+                    console.error('Enchant loadout fetch error:', error);
+                    document.getElementById('status').textContent = 'Could not load public enchant loadouts.';
+                });
+        };
+        updateTimer();
+        restoreRosterCache();
+        loadRoster();
+        document.querySelectorAll('.tab').forEach(button => {
+            button.addEventListener('click', () => {
+                const view = button.dataset.view;
+                if (view === activeView) return;
+                activeView = view;
+                currentPage = 1;
+                lastRosterSignature = '';
+                document.getElementById('clan-search').hidden = activeView !== 'clan';
+                document.getElementById('group-loadouts').hidden = activeView !== 'enchants';
+                document.querySelectorAll('.tab').forEach(tab => tab.classList.toggle('active', tab === button));
+                secondsRemaining = refreshSeconds;
+                updateTimer();
+                if (activeView === 'enchants') {
+                    setEnchantHeader();
+                    renderEnchantRoster();
+                    loadEnchantLoadouts();
+                } else {
+                    setLeaderboardHeader();
+                    restoreRosterCache();
+                    loadRoster();
+                }
+            });
+        });
+        document.getElementById('search').addEventListener('input', () => { currentPage = 1; lastRosterSignature = ''; activeView === 'enchants' ? renderEnchantRoster() : renderRoster(); });
+        document.getElementById('roster').addEventListener('click', event => {
+            const button = event.target.closest('.player-link');
+            if (!button) return;
+            const member = currentMembers.find(item => item.userId === Number(button.dataset.playerId));
+            if (member) showPlayer(member);
+        });
+        document.getElementById('back-button').addEventListener('click', () => {
+            document.getElementById('detail-view').hidden = true;
+            document.getElementById('list-view').hidden = false;
+        });
+        document.getElementById('developer-toggle').addEventListener('click', () => {
+            developerMode = !developerMode;
+            const button = document.getElementById('developer-toggle');
+            button.classList.toggle('active', developerMode);
+            button.textContent = `Developer: ${developerMode ? 'On' : 'Off'}`;
+            const trackedHeader = document.getElementById('tracked-header');
+            if (trackedHeader) trackedHeader.hidden = !developerMode;
+            if (activeView !== 'enchants') renderRoster();
+        });
+        document.getElementById('group-loadouts').addEventListener('click', () => {
+            groupEnchantLoadouts = !groupEnchantLoadouts;
+            currentPage = 1;
+            const button = document.getElementById('group-loadouts');
+            button.classList.toggle('active', groupEnchantLoadouts);
+            button.textContent = `Group Loadouts: ${groupEnchantLoadouts ? 'On' : 'Off'}`;
+            renderEnchantRoster();
+        });
+        document.getElementById('clan-search').addEventListener('submit', event => {
+            event.preventDefault();
+            const clanTag = document.getElementById('clan-tag').value.trim();
+            if (!clanTag) return;
+            selectedClan = clanTag;
+            currentPage = 1;
+            currentMembers = [];
+            lastRosterSignature = '';
+            secondsRemaining = refreshSeconds;
+            updateTimer();
+            restoreRosterCache();
+            loadRoster();
+        });
+        document.getElementById('previous-page').addEventListener('click', () => { currentPage -= 1; renderRoster(); });
+        document.getElementById('next-page').addEventListener('click', () => { currentPage += 1; renderRoster(); });
+        setInterval(() => {
+            secondsRemaining -= 1;
+            if (secondsRemaining <= 0) {
+                secondsRemaining = refreshSeconds;
+                loadRoster();
+            }
+            updateTimer();
+        }, 1000);
+        setInterval(() => {
+            if (activeView === 'enchants') loadEnchantLoadouts();
+        }, 10 * 60 * 1000);
+    </script>
+</body>
+</html>
