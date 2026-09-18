@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C0LD Clan Roster</title>
+    <title>T0IXHub Tracking</title>
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/huhi42046-commits/t0ixhub-tracker/main/image-removebg-preview%20(10)%20(2).png?v=3">
     <style>
         :root { color-scheme: dark; }
         * { box-sizing: border-box; }
@@ -105,7 +106,8 @@
                 <p class="subtitle" id="subtitle">Loading clan members…</p>
                 <nav class="tabs" aria-label="Leaderboard view">
                     <button class="tab active" data-view="clan" type="button">Clan</button>
-                    <button class="tab" data-view="league" type="button">League</button>
+                    <button class="tab" data-view="clan-players" type="button">Clan Players</button>
+                    <button class="tab" data-view="league" type="button">League Players</button>
                     <button class="tab" data-view="enchants" type="button">Enchant Loadouts</button>
                     <button class="developer-toggle" id="developer-toggle" type="button">Developer: Off</button>
                     <button class="developer-toggle" id="group-loadouts" type="button" hidden>Group Loadouts: Off</button>
@@ -255,7 +257,7 @@
                 return `<tr>
                     <td><div class="user"><div class="avatar">${avatar}</div><div><div class="name">${names}</div><div class="id">${matchingPlayers > 1 ? 'Same equipped enchant set' : `Roblox ID ${player.userId}`}</div></div></div></td>
                     <td class="clan">${escapeHtml(leagues.length === 1 ? leagues[0] : 'Multiple')}</td>
-                    <td class="points">${matchingPlayers > 1 ? `${matchingPlayers} players` : Number(player.points).toLocaleString()}</td>
+                    <td class="points"><span class="points-value">${matchingPlayers > 1 ? `${matchingPlayers} players` : Number(player.points).toLocaleString()}</span></td>
                     <td><div class="loadout">${enchants}</div></td>
                 </tr>`;
             }).join('') : '<tr><td colspan="4" class="muted">No public loadouts match this search.</td></tr>';
@@ -456,7 +458,9 @@
             if (activeView !== 'enchants' && !currentMembers.length) document.getElementById('status').textContent = `Fetching ${activeView} roster…`;
             const endpoint = activeView === 'clan'
                 ? `/api/clan?name=${encodeURIComponent(selectedClan)}`
-                : '/api/league';
+                : activeView === 'clan-players'
+                    ? '/api/clan-players'
+                    : '/api/league';
             fetch(endpoint)
                 .then(response => {
                     if (!response.ok) throw new Error(`Request failed: ${response.status}`);
@@ -465,8 +469,10 @@
                 .then(clan => {
                     const updated = new Date(clan.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                     document.getElementById('title').textContent =
-                        activeView === 'clan' ? `${clan.name} roster` : clan.name;
-                    document.getElementById('subtitle').textContent = `${clan.memberCount} players · ranked by points`;
+                        activeView === 'clan' ? `${clan.name} roster` : 'League Player Leaderboard';
+                    document.getElementById('subtitle').textContent = activeView === 'clan-players'
+                        ? `${clan.memberCount} Clan Battle contributors · ${clan.sampledClans || 0} sampled clans`
+                        : `${clan.memberCount} players · ranked by points`;
                     document.getElementById('group-header').textContent = clan.groupLabel;
                     currentMembers = clan.members.map((member, index) => ({ ...member, rank: index + 1 }));
                     currentGroupName = clan.name;
@@ -502,7 +508,7 @@
                     setEnchantHeader();
                     renderEnchantRoster();
                     const refreshed = new Date(enchantRefreshedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    document.getElementById('title').textContent = 'League enchant loadouts';
+                    document.getElementById('title').textContent = 'League Player Enchant Loadouts';
                     document.getElementById('subtitle').textContent = `${data.playerCount || 0} public loadouts from ${data.scannedPlayerCount || 0} top league players · refreshes every ${data.refreshEveryMinutes || 10} minutes`;
                     document.getElementById('status').textContent = `Scanned ${data.scannedPlayerCount || 0} top league players · showing ${data.playerCount || 0} public loadouts · last scan ${refreshed}.`;
                 })
@@ -527,10 +533,17 @@
                 secondsRemaining = refreshSeconds;
                 updateTimer();
                 if (activeView === 'enchants') {
+                    document.getElementById('title').textContent = 'League Player Enchant Loadouts';
+                    document.getElementById('subtitle').textContent = 'Loading public enchant loadouts…';
                     setEnchantHeader();
                     renderEnchantRoster();
                     loadEnchantLoadouts();
                 } else {
+                    document.getElementById('title').textContent = activeView === 'league'
+                        ? 'League Player Leaderboard'
+                        : activeView === 'clan-players'
+                            ? 'Clan Player Leaderboard'
+                            : `${selectedClan.toUpperCase()} roster`;
                     setLeaderboardHeader();
                     restoreRosterCache();
                     loadRoster();
@@ -584,7 +597,7 @@
             secondsRemaining -= 1;
             if (secondsRemaining <= 0) {
                 secondsRemaining = refreshSeconds;
-                loadRoster();
+                if (activeView !== 'enchants') loadRoster();
             }
             updateTimer();
         }, 1000);

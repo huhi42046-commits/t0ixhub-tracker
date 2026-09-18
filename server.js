@@ -25,10 +25,13 @@ const pointHistory = new Map();
 const leaguePointHistory = new Map();
 const pointTrackingStart = new Map();
 const leagueTrackingStart = new Map();
+const clanBattlePointHistory = new Map();
+const clanBattleTrackingStart = new Map();
 const pointSignatures = new Map();
 const pointLastUpdated = new Map();
 const clanActivityState = new Map();
 const leagueActivityState = new Map();
+const clanBattleActivityState = new Map();
 const enchantLoadoutCache = new Map();
 const enchantLookupInFlight = new Set();
 const enchantRefreshMs = 10 * 60 * 1000;
@@ -90,10 +93,13 @@ function loadState() {
         const saved = JSON.parse(fs.readFileSync(statePath, 'utf8'));
         restoreNumericMap(pointHistory, saved.pointHistory);
         restoreNumericMap(leaguePointHistory, saved.leaguePointHistory);
+        restoreNumericMap(clanBattlePointHistory, saved.clanBattlePointHistory);
         restoreNumericMap(pointTrackingStart, saved.pointTrackingStart);
         restoreNumericMap(leagueTrackingStart, saved.leagueTrackingStart);
+        restoreNumericMap(clanBattleTrackingStart, saved.clanBattleTrackingStart);
         restoreNumericMap(clanActivityState, saved.clanActivityState);
         restoreNumericMap(leagueActivityState, saved.leagueActivityState);
+        restoreNumericMap(clanBattleActivityState, saved.clanBattleActivityState);
         restoreNumericMap(nameCache, saved.nameCache);
         restoreNumericMap(avatarCache, saved.avatarCache);
         // Version the cache so a parser improvement never leaves the UI showing
@@ -117,10 +123,13 @@ async function saveState() {
         savedAt: Date.now(),
         pointHistory: [...pointHistory],
         leaguePointHistory: [...leaguePointHistory],
+        clanBattlePointHistory: [...clanBattlePointHistory],
         pointTrackingStart: [...pointTrackingStart],
         leagueTrackingStart: [...leagueTrackingStart],
+        clanBattleTrackingStart: [...clanBattleTrackingStart],
         clanActivityState: [...clanActivityState],
         leagueActivityState: [...leagueActivityState],
+        clanBattleActivityState: [...clanBattleActivityState],
         pointSignatures: [...pointSignatures],
         pointLastUpdated: [...pointLastUpdated],
         nameCache: [...nameCache],
@@ -279,6 +288,51 @@ async function getLeagueData() {
         memberCount: members.length,
         updatedAt: getPointUpdatedAt('league', rankedMembers),
         members: rankedMembers
+    };
+}
+
+async function getClanPlayersData() {
+    const response = await fetch('https://ps99.biggamesapi.io/v1/clans/players');
+    if (!response.ok) throw new Error('Could not load Clan Battle players.');
+
+    const result = await response.json();
+    const players = result.data?.players || [];
+    const userIds = players.map(player => player.UserID).filter(Number.isFinite);
+    const missingNames = players
+        .filter(player => !player.DisplayName || player.DisplayName === String(player.UserID))
+        .map(player => player.UserID);
+    const cachedNames = new Map(missingNames
+        .filter(userId => nameCache.has(userId))
+        .map(userId => [userId, nameCache.get(userId)]));
+    if (missingNames.length) void resolveRobloxNames(missingNames);
+
+    const cachedAvatars = new Map(userIds
+        .filter(userId => avatarCache.has(userId))
+        .map(userId => [userId, avatarCache.get(userId)]));
+    void resolveRobloxAvatars(userIds);
+
+    const members = players.map(player => ({
+        userId: player.UserID,
+        displayName: player.DisplayName && player.DisplayName !== String(player.UserID)
+            ? player.DisplayName
+            : cachedNames.get(player.UserID) || String(player.UserID),
+        group: player.Clan?.Name || 'Unknown',
+        avatarUrl: cachedAvatars.get(player.UserID) || null,
+        points: Number(player.ActiveBattlePoints) || 0
+    }));
+    const rankedMembers = addActivityStats(
+        addHourlyGains(members, clanBattlePointHistory, clanBattleTrackingStart),
+        clanBattleActivityState
+    ).sort((a, b) => b.points - a.points);
+
+    return {
+        name: 'Clan Player Leaderboard',
+        groupLabel: 'Clan',
+        memberCount: rankedMembers.length,
+        updatedAt: getPointUpdatedAt('clan-battle-players', rankedMembers),
+        members: rankedMembers,
+        battleId: result.data?.activeBattleConfigName || null,
+        sampledClans: result.data?.sampledClans || 0
     };
 }
 
@@ -680,6 +734,18 @@ const server = http.createServer(async (request, response) => {
     if (url.pathname === '/api/league') {
         try {
             const data = await getLeagueData();
+            response.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+            response.end(JSON.stringify(data));
+        } catch (error) {
+            response.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
+            response.end(JSON.stringify({ error: error.message }));
+        }
+        return;
+    }
+
+    if (url.pathname === '/api/clan-players') {
+        try {
+            const data = await getClanPlayersData();
             response.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
             response.end(JSON.stringify(data));
         } catch (error) {
