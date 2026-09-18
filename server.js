@@ -1,9 +1,19 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const port = Number(process.env.PORT) || 3000;
 const htmlPath = path.join(__dirname, 'Tracking.html');
+const faviconPath = path.join(__dirname, 'favicon.svg');
+// Comma-separated access keys supplied only by the deployment environment.
+// Leaving this unset keeps local development open.
+const accessKeys = (process.env.TRACKER_ACCESS_KEYS || '')
+    .split(',')
+    .map(key => key.trim())
+    .filter(Boolean);
+const accessSessions = new Map();
+const accessSessionLifetimeMs = 14 * 24 * 60 * 60 * 1000;
 // Keep long-term tracking data in a separate persistent directory when the
 // app is deployed, while still using this folder during local development.
 const statePath = process.env.TRACKER_STATE_PATH || path.join(__dirname, 'tracker-state.json');
@@ -28,6 +38,47 @@ let enchantLastScannedCount = 0;
 let enchantRefreshPromise = null;
 let enchantRefreshTimer = null;
 let saveTimer = null;
+
+function parseCookies(request) {
+    return Object.fromEntries((request.headers.cookie || '')
+        .split(';')
+        .map(item => item.trim().split('='))
+        .filter(([key, value]) => key && value));
+}
+
+function isAccessAuthorized(request) {
+    if (!accessKeys.length) return true;
+    const token = parseCookies(request).tracker_access;
+    const expiresAt = token && accessSessions.get(token);
+    if (!expiresAt || expiresAt <= Date.now()) {
+        if (token) accessSessions.delete(token);
+        return false;
+    }
+    return true;
+}
+
+function keyIsValid(candidate) {
+    const value = Buffer.from(candidate || '');
+    return accessKeys.some(key => {
+        const expected = Buffer.from(key);
+        return value.length === expected.length && crypto.timingSafeEqual(value, expected);
+    });
+}
+
+function renderAccessPage(response, invalid = false) {
+    const message = invalid ? '<p class="error">That access key is not valid.</p>' : '';
+    response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+    response.end(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>T0IXHub Tracking · Access</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at top,#25164c,#080b17 65%);color:#f7f5ff;font:16px Arial,sans-serif}.card{width:min(390px,calc(100% - 40px));padding:34px;border:1px solid #5e4b9b;border-radius:18px;background:#121426e8;box-shadow:0 22px 70px #0008}h1{margin:0 0 8px;font-size:29px}.accent{color:#6ef0c2}p{color:#adb6d5;line-height:1.5}.error{color:#ff8aa8}input,button{box-sizing:border-box;width:100%;padding:14px;border-radius:10px;font-size:16px}input{margin:14px 0;border:1px solid #4b4271;background:#090b15;color:#fff}button{border:0;background:linear-gradient(90deg,#875dff,#35cdeb);color:#fff;font-weight:800;cursor:pointer}</style></head><body><main class="card"><div class="accent">T0IXHUB · PRIVATE TRACKER</div><h1>Enter access key</h1><p>This tracker is private. Enter the access key you were given to continue.</p>${message}<form method="post" action="/access"><input name="key" type="password" autocomplete="current-password" autofocus required placeholder="Access key"><button type="submit">Enter tracker</button></form></main></body></html>`);
+}
+
+async function readRequestBody(request) {
+    let body = '';
+    for await (const chunk of request) {
+        body += chunk;
+        if (body.length > 4_096) throw new Error('Request body too large.');
+    }
+    return body;
+}
 
 function restoreNumericMap(target, entries) {
     for (const [key, value] of entries || []) target.set(Number(key), value);
@@ -550,6 +601,37 @@ loadState();
 const server = http.createServer(async (request, response) => {
     const url = new URL(request.url, `http://${request.headers.host}`);
 
+    if (accessKeys.length && !isAccessAuthorized(request)) {
+        if (url.pathname === '/access' && request.method === 'POST') {
+            try {
+                const form = new URLSearchParams(await readRequestBody(request));
+                if (keyIsValid(form.get('key'))) {
+                    const token = crypto.randomBytes(32).toString('hex');
+                    accessSessions.set(token, Date.now() + accessSessionLifetimeMs);
+                    response.writeHead(303, {
+                        Location: '/',
+                        'Set-Cookie': `tracker_access=${token}; Max-Age=${accessSessionLifetimeMs / 1000}; Path=/; HttpOnly; Secure; SameSite=Lax`
+                    });
+                    response.end();
+                    return;
+                }
+            } catch (error) {
+                console.warn('Access key request failed:', error.message);
+            }
+            renderAccessPage(response, true);
+            return;
+        }
+
+        if (url.pathname === '/access') {
+            renderAccessPage(response);
+            return;
+        }
+
+        response.writeHead(303, { Location: '/access', 'Cache-Control': 'no-store' });
+        response.end();
+        return;
+    }
+
     if (url.pathname === '/' || url.pathname === '/Tracking.html') {
         fs.readFile(htmlPath, (error, html) => {
             if (error) {
@@ -560,6 +642,19 @@ const server = http.createServer(async (request, response) => {
 
             response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
             response.end(html);
+        });
+        return;
+    }
+
+    if (url.pathname === '/favicon.svg') {
+        fs.readFile(faviconPath, (error, icon) => {
+            if (error) {
+                response.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+                response.end('Favicon not found.');
+                return;
+            }
+            response.writeHead(200, { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=604800' });
+            response.end(icon);
         });
         return;
     }
