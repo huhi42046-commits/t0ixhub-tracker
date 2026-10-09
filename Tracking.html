@@ -11,6 +11,10 @@
         body { margin: 0; min-height: 100vh; padding: 28px; background: radial-gradient(ellipse 70% 38% at 16% -10%, rgba(112, 69, 216, .36), transparent 68%), radial-gradient(ellipse 55% 32% at 91% 5%, rgba(0, 184, 194, .22), transparent 72%), radial-gradient(circle at 48% 104%, rgba(243, 177, 59, .10), transparent 36%), #090a0f; color: #e9e9ef; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
         .page { max-width: 1550px; margin: 0 auto; }
         .game-picker { display: grid; min-height: calc(100vh - 56px); place-items: center; }
+        .game-picker.is-leaving { pointer-events: none; animation: picker-out .38s cubic-bezier(.22,.8,.25,1) forwards; }
+        #list-view:not([hidden]), #detail-view:not([hidden]), .minecraft-view:not([hidden]), .game-nav:not([hidden]) { animation: selected-view-in .42s cubic-bezier(.22,.8,.25,1) both; }
+        @keyframes picker-out { to { opacity: 0; transform: translateY(-20px) scale(.975); filter: blur(5px); } }
+        @keyframes selected-view-in { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         .game-picker-panel { position: relative; isolation: isolate; width: min(100%, 1060px); overflow: hidden; padding: clamp(30px, 6vw, 66px); border: 1px solid rgba(146, 133, 230, .4); border-radius: 30px; background: linear-gradient(125deg, rgba(26, 18, 62, .97), rgba(10, 21, 35, .98) 58%, rgba(10, 37, 44, .96)); box-shadow: 0 34px 110px rgba(0, 0, 0, .56), inset 0 1px rgba(255,255,255,.1); text-align: center; }
         .game-picker-panel::before { content: ""; position: absolute; z-index: -1; inset: -35% 42% auto -16%; height: 110%; border-radius: 50%; background: radial-gradient(circle, rgba(121, 77, 255, .34), transparent 64%); filter: blur(16px); }
         .game-picker-panel::after { content: ""; position: absolute; z-index: -1; inset: auto -13% -66% 48%; height: 120%; border-radius: 50%; background: radial-gradient(circle, rgba(30, 217, 219, .17), transparent 65%); filter: blur(16px); }
@@ -135,6 +139,7 @@
         .chart-final-dot { fill: #f6c84e; stroke: #fff0b1; stroke-width: 2; filter: drop-shadow(0 0 6px rgba(246,200,78,.8)); }
         .chart-label { fill: #a7aac0; font-size: 12px; }
         @media (max-width: 820px) { .detail-grid { grid-template-columns: 1fr; } }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
         @media (max-width: 600px) { body { padding: 16px; } .topbar { align-items: start; flex-direction: column; } .game-cards { grid-template-columns: 1fr; } .game-picker { min-height: calc(100vh - 32px); } .game-nav { align-items: start; flex-direction: column; gap: 9px; } }
     </style>
 </head>
@@ -289,13 +294,25 @@
         };
         const selectGame = game => {
             const isRoblox = game === 'roblox';
-            document.getElementById('game-picker').hidden = true;
-            document.getElementById('game-nav').hidden = false;
-            document.getElementById('list-view').hidden = !isRoblox;
-            document.getElementById('detail-view').hidden = true;
-            document.getElementById('minecraft-view').hidden = isRoblox;
-            document.querySelectorAll('.game-switch').forEach(button => button.classList.toggle('active', button.dataset.game === game));
-            if (isRoblox) prepareRoblox();
+            const picker = document.getElementById('game-picker');
+            const showSelectedGame = () => {
+                document.getElementById('game-nav').hidden = false;
+                document.getElementById('list-view').hidden = !isRoblox;
+                document.getElementById('detail-view').hidden = true;
+                document.getElementById('minecraft-view').hidden = isRoblox;
+                document.querySelectorAll('.game-switch').forEach(button => button.classList.toggle('active', button.dataset.game === game));
+                if (isRoblox) prepareRoblox();
+            };
+            if (!picker.hidden) {
+                picker.classList.add('is-leaving');
+                window.setTimeout(() => {
+                    picker.hidden = true;
+                    picker.classList.remove('is-leaving');
+                    showSelectedGame();
+                }, 380);
+            } else {
+                showSelectedGame();
+            }
         };
         const formatDuration = milliseconds => {
             const totalMinutes = Math.floor((milliseconds || 0) / 60000);
