@@ -11,20 +11,38 @@
         body { margin: 0; min-height: 100vh; padding: 28px; background: radial-gradient(ellipse 70% 38% at 16% -10%, rgba(112, 69, 216, .36), transparent 68%), radial-gradient(ellipse 55% 32% at 91% 5%, rgba(0, 184, 194, .22), transparent 72%), radial-gradient(circle at 48% 104%, rgba(243, 177, 59, .10), transparent 36%), #090a0f; color: #e9e9ef; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
         .page { max-width: 1550px; margin: 0 auto; }
         .game-picker { display: grid; min-height: calc(100vh - 56px); place-items: center; }
-        .game-picker-panel { width: min(100%, 980px); padding: clamp(28px, 6vw, 64px); border: 1px solid rgba(126, 112, 191, .38); border-radius: 24px; background: linear-gradient(135deg, rgba(29, 22, 57, .96), rgba(11, 25, 34, .94)); box-shadow: 0 28px 100px rgba(0, 0, 0, .46), inset 0 1px rgba(255,255,255,.06); text-align: center; }
-        .game-picker-panel::before { content: ""; display: block; height: 4px; margin-bottom: 30px; border-radius: 999px; background: linear-gradient(90deg, #8b5cf6, #22d3ee, #48e38b, #f6c84e, #fb7185); box-shadow: 0 0 22px rgba(139,92,246,.5); }
-        .game-picker-panel h1 { font-size: clamp(32px, 5vw, 52px); }
-        .game-picker-copy { max-width: 560px; margin: 12px auto 34px; color: #aeb1c2; line-height: 1.6; }
-        .game-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; text-align: left; }
-        .game-card { position: relative; min-height: 210px; overflow: hidden; border: 1px solid #3a3c50; border-radius: 16px; padding: 24px; background: linear-gradient(135deg, rgba(58, 38, 114, .72), rgba(21, 26, 48, .9)); color: inherit; cursor: pointer; text-align: left; font: inherit; transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
-        .game-card::after { content: ""; position: absolute; inset: auto -35px -62px auto; width: 170px; height: 170px; border-radius: 50%; background: rgba(141, 99, 255, .22); filter: blur(2px); }
-        .game-card:hover { transform: translateY(-5px); border-color: #a78bfa; box-shadow: 0 16px 34px rgba(67, 43, 145, .35); }
-        .game-card.minecraft { background: linear-gradient(135deg, rgba(30, 100, 55, .72), rgba(18, 38, 31, .92)); }
-        .game-card.minecraft::after { background: rgba(84, 219, 118, .18); }
-        .game-card.minecraft:hover { border-color: #5ee58a; box-shadow: 0 16px 34px rgba(35, 141, 70, .28); }
-        .game-card-label { display: block; margin-bottom: 9px; color: #a8abbb; font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-        .game-card strong { position: relative; z-index: 1; display: block; color: #fff; font-size: 25px; letter-spacing: -.03em; }
-        .game-card span:last-child { position: relative; z-index: 1; display: block; max-width: 260px; margin-top: 9px; color: #c7c9d4; font-size: 13px; line-height: 1.45; }
+        .game-picker-panel { position: relative; isolation: isolate; width: min(100%, 1060px); overflow: hidden; padding: clamp(30px, 6vw, 66px); border: 1px solid rgba(146, 133, 230, .4); border-radius: 30px; background: linear-gradient(125deg, rgba(26, 18, 62, .97), rgba(10, 21, 35, .98) 58%, rgba(10, 37, 44, .96)); box-shadow: 0 34px 110px rgba(0, 0, 0, .56), inset 0 1px rgba(255,255,255,.1); text-align: center; }
+        .game-picker-panel::before { content: ""; position: absolute; z-index: -1; inset: -35% 42% auto -16%; height: 110%; border-radius: 50%; background: radial-gradient(circle, rgba(121, 77, 255, .34), transparent 64%); filter: blur(16px); }
+        .game-picker-panel::after { content: ""; position: absolute; z-index: -1; inset: auto -13% -66% 48%; height: 120%; border-radius: 50%; background: radial-gradient(circle, rgba(30, 217, 219, .17), transparent 65%); filter: blur(16px); }
+        .game-picker-topline { display: flex; align-items: center; gap: 10px; width: min(100%, 520px); margin: 0 auto 28px; color: #bfc2da; font-size: 10px; font-weight: 850; letter-spacing: .16em; text-transform: uppercase; }
+        .game-picker-topline::before, .game-picker-topline::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(180,164,255,.64)); }
+        .game-picker-topline::after { background: linear-gradient(90deg, rgba(66,235,229,.64), transparent); }
+        .game-picker-panel h1 { font-size: clamp(42px, 6vw, 68px); line-height: .98; text-shadow: 0 5px 30px rgba(145, 107, 255, .34); }
+        .game-picker-panel h1 span { color: #a58bff; }
+        .game-picker-copy { max-width: 610px; margin: 17px auto 36px; color: #b9bfd1; font-size: 15px; line-height: 1.65; }
+        .game-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; text-align: left; }
+        .game-card { position: relative; min-height: 258px; overflow: hidden; border: 1px solid rgba(151, 132, 235, .4); border-radius: 20px; padding: 26px; background: linear-gradient(145deg, rgba(92, 61, 177, .74), rgba(35, 29, 83, .95) 60%, rgba(19, 26, 55, .98)); color: inherit; cursor: pointer; text-align: left; font: inherit; transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease, filter .22s ease; }
+        .game-card::before { content: ""; position: absolute; inset: 0; opacity: .64; background-image: linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px); background-size: 24px 24px; mask-image: linear-gradient(130deg, black, transparent 75%); }
+        .game-card::after { content: ""; position: absolute; inset: auto -46px -82px auto; width: 230px; height: 230px; border: 1px solid rgba(183,157,255,.34); border-radius: 50%; background: radial-gradient(circle at 35% 35%, rgba(177,139,255,.38), rgba(104,66,214,.1) 48%, transparent 70%); box-shadow: inset 0 0 40px rgba(161,126,255,.12); }
+        .game-card:hover { transform: translateY(-8px) scale(1.01); border-color: #b99dff; box-shadow: 0 24px 48px rgba(77, 45, 178, .38), 0 0 0 1px rgba(200,184,255,.14); }
+        .game-card.minecraft { border-color: rgba(89, 224, 144, .34); background: linear-gradient(145deg, rgba(27, 111, 67, .8), rgba(17, 54, 42, .96) 60%, rgba(12, 31, 30, .98)); }
+        .game-card.minecraft::after { border-color: rgba(129, 245, 163, .28); background: radial-gradient(circle at 35% 35%, rgba(107, 238, 139, .31), rgba(23, 145, 73, .1) 48%, transparent 70%); }
+        .game-card.minecraft:hover { border-color: #72efa2; box-shadow: 0 24px 48px rgba(33, 151, 79, .3), 0 0 0 1px rgba(182,255,198,.12); }
+        .game-card-content { position: relative; z-index: 1; display: flex; height: 100%; flex-direction: column; }
+        .game-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+        .game-card-icon { display: grid; width: 52px; height: 52px; place-items: center; border: 1px solid rgba(213, 199, 255, .52); border-radius: 15px; background: rgba(18, 17, 53, .6); color: #eeeaff; font-size: 25px; box-shadow: inset 0 1px rgba(255,255,255,.16), 0 8px 22px rgba(0,0,0,.18); }
+        .minecraft .game-card-icon { border-color: rgba(178,255,194,.48); background: rgba(12, 57, 34, .58); color: #dbffe5; }
+        .game-card-label { display: inline-flex; align-items: center; gap: 7px; margin-top: 3px; border: 1px solid rgba(211, 200, 255, .23); border-radius: 999px; padding: 7px 10px; color: #d7d1ee; background: rgba(8, 10, 28, .24); font-size: 10px; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; }
+        .game-card-label.live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #56f39b; box-shadow: 0 0 12px #56f39b; }
+        .game-card-label.soon { color: #c3d9c8; }
+        .game-card strong { display: block; margin-top: 27px; color: #fff; font-size: 31px; letter-spacing: -.04em; }
+        .game-card span:last-child { display: block; max-width: 315px; margin-top: 8px; color: #d0d1df; font-size: 13px; line-height: 1.55; }
+        .game-card-cta { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 23px; color: #fff; font-size: 12px; font-weight: 850; letter-spacing: .04em; }
+        .game-card-cta b { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 50%; background: rgba(255,255,255,.14); font-size: 17px; transition: transform .22s ease, background .22s ease; }
+        .game-card:hover .game-card-cta b { transform: translateX(4px); background: rgba(255,255,255,.25); }
+        .game-picker-note { display: flex; justify-content: center; gap: 18px; margin: 29px 0 0; color: #9196ac; font-size: 11px; font-weight: 700; letter-spacing: .03em; }
+        .game-picker-note span { display: inline-flex; align-items: center; gap: 6px; }
+        .game-picker-note i { width: 6px; height: 6px; border-radius: 50%; background: #59e9aa; box-shadow: 0 0 9px rgba(89,233,170,.8); }
         .game-nav { display: flex; align-items: center; justify-content: space-between; max-width: 1550px; margin: 0 auto 16px; padding: 9px 12px; border: 1px solid rgba(82, 87, 119, .48); border-radius: 12px; background: rgba(14, 15, 24, .76); box-shadow: 0 10px 28px rgba(0,0,0,.24); }
         .game-nav-brand { color: #c8c3df; font-size: 11px; font-weight: 850; letter-spacing: .11em; text-transform: uppercase; }
         .game-nav-buttons { display: flex; gap: 7px; }
@@ -123,13 +141,28 @@
 <body>
     <main class="game-picker" id="game-picker">
         <section class="game-picker-panel">
-            <p class="eyebrow">T0IXHUB · TRACKING PLATFORM</p>
-            <h1>Choose your tracker</h1>
-            <p class="game-picker-copy">Pick a game to continue. Only the tracker you open will use server resources.</p>
+            <div class="game-picker-topline">T0IXHUB · TRACKING PLATFORM</div>
+            <h1>Choose <span>Game</span></h1>
+            <p class="game-picker-copy">Choose where you want to go. Your selected tracker loads on demand, so inactive games never use your server resources.</p>
             <div class="game-cards">
-                <button class="game-card" data-game="roblox" type="button"><span class="game-card-label">Live now</span><strong>Roblox</strong><span>Pet Simulator 99 clan battles, leagues, player progress, and public enchant loadouts.</span></button>
-                <button class="game-card minecraft" data-game="minecraft" type="button"><span class="game-card-label">Coming soon</span><strong>Minecraft</strong><span>Your Minecraft tracker will live here. Roblox tracking stays paused until you open it.</span></button>
+                <button class="game-card" data-game="roblox" type="button">
+                    <span class="game-card-content">
+                        <span class="game-card-header"><span class="game-card-icon">◆</span><span class="game-card-label live">Live now</span></span>
+                        <strong>Roblox</strong>
+                        <span>Pet Simulator 99 clan battles, league rankings, point history, and public enchant loadouts.</span>
+                        <span class="game-card-cta">Open Roblox tracker <b>→</b></span>
+                    </span>
+                </button>
+                <button class="game-card minecraft" data-game="minecraft" type="button">
+                    <span class="game-card-content">
+                        <span class="game-card-header"><span class="game-card-icon">◆</span><span class="game-card-label soon">Coming soon</span></span>
+                        <strong>Minecraft</strong>
+                        <span>Your Minecraft tracker will live here. No Roblox calls are made until you choose Roblox.</span>
+                        <span class="game-card-cta">Explore Minecraft <b>→</b></span>
+                    </span>
+                </button>
             </div>
+            <p class="game-picker-note"><span><i></i> On-demand loading</span><span>·</span><span>Private access enabled</span></p>
         </section>
     </main>
     <nav class="game-nav" id="game-nav" hidden>
