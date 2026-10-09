@@ -8,7 +8,7 @@
     <style>
         :root { color-scheme: dark; }
         * { box-sizing: border-box; }
-        body { margin: 0; min-height: 100vh; padding: 28px; background: radial-gradient(ellipse 70% 38% at 16% -10%, rgba(112, 69, 216, .36), transparent 68%), radial-gradient(ellipse 55% 32% at 91% 5%, rgba(0, 184, 194, .22), transparent 72%), radial-gradient(circle at 48% 104%, rgba(243, 177, 59, .10), transparent 36%), #090a0f; color: #e9e9ef; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        body { margin: 0; min-height: 100vh; padding: 28px; background: radial-gradient(ellipse 70% 38% at 16% -10%, rgba(112, 69, 216, .36), transparent 68%), radial-gradient(ellipse 55% 32% at 91% 5%, rgba(0, 184, 194, .22), transparent 72%), #090a0f; color: #e9e9ef; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
         [hidden] { display: none !important; }
         .page { max-width: 1550px; margin: 0 auto; }
         .game-picker { display: grid; min-height: calc(100vh - 56px); place-items: center; }
@@ -48,21 +48,25 @@
         .game-picker-note { display: flex; justify-content: center; gap: 18px; margin: 29px 0 0; color: #9196ac; font-size: 11px; font-weight: 700; letter-spacing: .03em; }
         .game-picker-note span { display: inline-flex; align-items: center; gap: 6px; }
         .game-picker-note i { width: 6px; height: 6px; border-radius: 50%; background: #59e9aa; box-shadow: 0 0 9px rgba(89,233,170,.8); }
-        .game-nav { display: flex; align-items: center; justify-content: space-between; max-width: 1550px; margin: 0 auto 16px; padding: 9px 12px; border: 1px solid rgba(82, 87, 119, .48); border-radius: 12px; background: rgba(14, 15, 24, .76); box-shadow: 0 10px 28px rgba(0,0,0,.24); }
-        .game-nav-brand { color: #c8c3df; font-size: 11px; font-weight: 850; letter-spacing: .11em; text-transform: uppercase; }
+        .game-nav { position: relative; display: flex; align-items: center; justify-content: space-between; max-width: 1550px; margin: 0 auto 18px; padding: 11px 13px; overflow: hidden; border: 1px solid rgba(120, 111, 183, .54); border-radius: 14px; background: linear-gradient(105deg, rgba(29, 22, 61, .96), rgba(13, 19, 31, .98) 56%, rgba(10, 38, 43, .92)); box-shadow: 0 14px 34px rgba(0,0,0,.28), inset 0 1px rgba(255,255,255,.07); }
+        .game-nav::before { content: ""; position: absolute; top: 0; right: 16px; left: 16px; height: 1px; background: linear-gradient(90deg, transparent, rgba(172,143,255,.8), rgba(71,231,215,.65), transparent); }
+        .game-nav-brand { position: relative; display: flex; align-items: center; gap: 8px; color: #e0dcf3; font-size: 11px; font-weight: 850; letter-spacing: .11em; text-transform: uppercase; }
+        .game-nav-brand::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #58efa3; box-shadow: 0 0 12px rgba(88,239,163,.82); }
         .game-nav-buttons { display: flex; gap: 7px; }
-        .game-switch { border: 1px solid #353746; border-radius: 7px; padding: 7px 11px; background: #171821; color: #9fa2b1; cursor: pointer; font: inherit; font-size: 12px; font-weight: 750; }
-        .game-switch.active { border-color: #a78bfa; background: #382365; color: #fff; }
+        .game-switch { position: relative; border: 1px solid #37384c; border-radius: 8px; padding: 7px 12px; background: rgba(11,13,22,.72); color: #aeb1c2; cursor: pointer; font: inherit; font-size: 12px; font-weight: 750; transition: border-color .16s ease, color .16s ease, background .16s ease; }
+        .game-switch:hover { border-color: #7562bd; color: #ece9fa; }
+        .game-switch.active { border-color: #a78bfa; background: linear-gradient(135deg, #5634aa, #31205f); color: #fff; box-shadow: 0 5px 14px rgba(106,69,210,.24); }
         .minecraft-view { max-width: 980px; margin: 56px auto 0; padding: clamp(28px, 6vw, 62px); border: 1px solid rgba(85, 190, 112, .35); border-radius: 20px; background: linear-gradient(135deg, rgba(18, 52, 34, .92), rgba(12, 20, 20, .96)); box-shadow: 0 24px 70px rgba(0,0,0,.38); text-align: center; }
         .minecraft-icon { display: grid; width: 68px; height: 68px; place-items: center; margin: 0 auto 18px; border: 1px solid rgba(125, 244, 159, .55); border-radius: 16px; background: linear-gradient(135deg, #2d8b4c, #16442a); color: #eaffee; font-size: 32px; box-shadow: 0 0 28px rgba(72, 227, 139, .2); }
         .minecraft-view p { max-width: 470px; margin: 12px auto 0; color: #acbcaf; line-height: 1.6; }
         #list-view::before, #detail-view::before { content: ""; display: block; height: 4px; margin-bottom: 22px; border-radius: 999px; background: linear-gradient(90deg, #8b5cf6 0 22%, #22d3ee 22% 46%, #48e38b 46% 68%, #f6c84e 68% 84%, #fb7185 84%); box-shadow: 0 0 22px rgba(139,92,246,.4); }
-        .topbar { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 20px; }
+        .topbar { position: relative; display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 20px; padding: 4px 0 3px 17px; }
+        .topbar::before { content: ""; position: absolute; inset: 3px auto 3px 0; width: 4px; border-radius: 999px; background: linear-gradient(#a78bfa, #22d3ee 55%, #48e38b); box-shadow: 0 0 18px rgba(112,102,255,.48); }
         .eyebrow { margin: 0 0 5px; color: #8d91a1; font-size: 11px; font-weight: 750; letter-spacing: .11em; text-transform: uppercase; }
         h1 { margin: 0; color: #f6f3ff; font-size: clamp(26px, 4vw, 38px); letter-spacing: -.045em; text-shadow: 0 2px 18px rgba(170,135,255,.2); }
         .subtitle { margin: 7px 0 0; color: #a5a8b7; font-size: 13px; }
         .live { display: flex; align-items: center; gap: 9px; padding: 10px 12px; border: 1px solid #344051; border-radius: 10px; background: linear-gradient(135deg, rgba(18,24,39,.96), rgba(18,18,27,.96)); color: #d8d9e3; font-size: 12px; white-space: nowrap; box-shadow: 0 8px 22px rgba(0,0,0,.24), inset 0 1px rgba(255,255,255,.04); }
-        .tabs { display: flex; gap: 7px; margin-top: 16px; }
+        .tabs { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 16px; }
         .tab { border: 1px solid #30313a; border-radius: 7px; padding: 8px 14px; background: #15151b; color: #989ba8; cursor: pointer; font: inherit; font-size: 12px; font-weight: 750; transition: .15s ease; }
         .tab:hover { border-color: #6b5aa9; color: #ddd9ff; }
         .tab.active { border-color: #9f7aea; background: linear-gradient(135deg, #5a3ba7, #33205f); color: #f9f7ff; box-shadow: 0 5px 16px rgba(110,72,210,.3); }
@@ -76,15 +80,15 @@
         .clan-search input { width: min(100%, 220px); border: 1px solid #30313a; border-radius: 7px; padding: 8px 10px; background: #121217; color: #f0f0f5; font: inherit; font-size: 12px; outline: none; }
         .clan-search input:focus { border-color: #8b5cf6; }
         .clan-search button { border: 1px solid #7450d8; border-radius: 7px; padding: 8px 12px; background: linear-gradient(135deg, #7651dc, #4f2d9d); color: #fff; cursor: pointer; font: inherit; font-size: 12px; font-weight: 750; box-shadow: 0 5px 14px rgba(92,59,181,.25); }
-        .dot { width: 8px; height: 8px; border-radius: 50%; background: #48e38b; box-shadow: 0 0 12px #48e38b; animation: pulse 1.8s ease-in-out infinite; }
-        .table-wrap { overflow-x: auto; border: 1px solid rgba(98,104,141,.46); border-radius: 14px; background: linear-gradient(180deg, rgba(24,26,40,.98), rgba(12,13,20,.98)); box-shadow: 0 20px 60px rgba(0, 0, 0, .36), inset 0 1px rgba(255,255,255,.045); }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: #48e38b; box-shadow: 0 0 12px #48e38b; }
+        .table-wrap { overflow-x: auto; border: 1px solid rgba(98,104,141,.46); border-radius: 14px; background: linear-gradient(180deg, rgba(24,26,40,.98), rgba(12,13,20,.98)); box-shadow: 0 20px 60px rgba(0, 0, 0, .36), inset 0 1px rgba(255,255,255,.045); content-visibility: auto; contain-intrinsic-size: auto 680px; }
         table { width: 100%; min-width: 790px; border-collapse: collapse; }
         thead { color: #abb1c8; font-size: 11px; letter-spacing: .06em; text-align: left; text-transform: uppercase; background: rgba(116,90,205,.09); }
         th { padding: 14px 16px; font-weight: 800; border-bottom: 1px solid #36394d; }
         td { padding: 12px 16px; border-bottom: 1px solid #272938; font-size: 13px; }
-        tbody tr { transition: background .18s ease, transform .18s ease, opacity .18s ease; }
+        tbody tr { transition: background .16s ease; }
         tbody tr:nth-child(odd) { background: rgba(255,255,255,.025); }
-        tbody tr:hover { background: linear-gradient(90deg, rgba(139,92,246,.19), rgba(34,211,238,.09)); transform: translateX(2px); }
+        tbody tr:hover { background: linear-gradient(90deg, rgba(139,92,246,.19), rgba(34,211,238,.09)); }
         tbody tr:last-child td { border-bottom: 0; }
         .rank { width: 64px; color: #f4f4f7; font-weight: 800; }
         .rank::first-letter { color: #9fa8c6; }
@@ -139,6 +143,7 @@
         .chart-dot { fill: #43e5ff; stroke: #162332; stroke-width: 3; }
         .chart-final-dot { fill: #f6c84e; stroke: #fff0b1; stroke-width: 2; filter: drop-shadow(0 0 6px rgba(246,200,78,.8)); }
         .chart-label { fill: #a7aac0; font-size: 12px; }
+        button:focus-visible, input:focus-visible { outline: 2px solid #61e7db; outline-offset: 2px; }
         @media (max-width: 820px) { .detail-grid { grid-template-columns: 1fr; } }
         @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
         @media (max-width: 600px) { body { padding: 16px; } .topbar { align-items: start; flex-direction: column; } .game-cards { grid-template-columns: 1fr; } .game-picker { min-height: calc(100vh - 32px); } .game-nav { align-items: start; flex-direction: column; gap: 9px; } }
@@ -249,6 +254,7 @@
         let lastRosterSignature = '';
         let lastSyncedAt = 0;
         let robloxPrepared = false;
+        let activeGame = null;
 
         const rosterCacheKey = () => `t0ixhub-roster:${activeView}:${selectedClan.toLowerCase()}`;
         const writeRosterCache = () => {
@@ -297,12 +303,16 @@
             const isRoblox = game === 'roblox';
             const picker = document.getElementById('game-picker');
             const showSelectedGame = () => {
+                activeGame = game;
                 document.getElementById('game-nav').hidden = false;
                 document.getElementById('list-view').hidden = !isRoblox;
                 document.getElementById('detail-view').hidden = true;
                 document.getElementById('minecraft-view').hidden = isRoblox;
                 document.querySelectorAll('.game-switch').forEach(button => button.classList.toggle('active', button.dataset.game === game));
-                if (isRoblox) prepareRoblox();
+                if (isRoblox) {
+                    if (robloxPrepared) loadRoster();
+                    else prepareRoblox();
+                }
             };
             if (!picker.hidden) {
                 picker.classList.add('is-leaving');
@@ -598,7 +608,7 @@
                     currentUpdated = updated;
                     if (activeView !== 'enchants') {
                         setLeaderboardHeader();
-                        renderRoster(true);
+                        renderRoster(false);
                         writeRosterCache();
                         lastSyncedAt = Date.now();
                         document.getElementById('status').innerHTML = `<span class="sync-status"><strong>Live data synced</strong> · ${clan.memberCount} ${activeView} players · ${updated}</span>`;
@@ -636,9 +646,9 @@
                     document.getElementById('status').textContent = 'Could not load public enchant loadouts.';
                 });
         };
-        updateTimer();
-        restoreRosterCache();
-        loadRoster();
+        // The tracker stays completely idle until Roblox is explicitly chosen.
+        // This leaves CPU, memory, and upstream API capacity free for the
+        // Minecraft account service when it is added.
         document.querySelectorAll('.tab').forEach(button => {
             button.addEventListener('click', () => {
                 const view = button.dataset.view;
@@ -716,16 +726,23 @@
         document.getElementById('previous-page').addEventListener('click', () => { currentPage -= 1; renderRoster(); });
         document.getElementById('next-page').addEventListener('click', () => { currentPage += 1; renderRoster(); });
         setInterval(() => {
+            if (!robloxPrepared || activeGame !== 'roblox' || document.hidden || activeView === 'enchants') return;
             secondsRemaining -= 1;
             if (secondsRemaining <= 0) {
                 secondsRemaining = refreshSeconds;
-                if (robloxPrepared && activeView !== 'enchants') loadRoster();
+                loadRoster();
             }
             updateTimer();
         }, 1000);
         setInterval(() => {
-            if (activeView === 'enchants') loadEnchantLoadouts();
+            if (robloxPrepared && activeGame === 'roblox' && !document.hidden && activeView === 'enchants') loadEnchantLoadouts();
         }, 10 * 60 * 1000);
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden || !robloxPrepared || activeGame !== 'roblox') return;
+            secondsRemaining = refreshSeconds;
+            updateTimer();
+            if (activeView !== 'enchants') loadRoster();
+        });
     </script>
 </body>
 </html>

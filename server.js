@@ -106,6 +106,10 @@ function loadState() {
         restoreNumericMap(pointHistory, saved.pointHistory);
         restoreNumericMap(leaguePointHistory, saved.leaguePointHistory);
         restoreNumericMap(clanBattlePointHistory, saved.clanBattlePointHistory);
+        const now = Date.now();
+        for (const store of [pointHistory, leaguePointHistory, clanBattlePointHistory]) {
+            for (const [userId, history] of store) store.set(userId, compactPointHistory(history, now));
+        }
         restoreNumericMap(pointTrackingStart, saved.pointTrackingStart);
         restoreNumericMap(leagueTrackingStart, saved.leagueTrackingStart);
         restoreNumericMap(clanBattleTrackingStart, saved.clanBattleTrackingStart);
@@ -180,10 +184,33 @@ function getPointUpdatedAt(key, members) {
     return pointLastUpdated.get(key);
 }
 
+function compactPointHistory(history, now) {
+    const minute = 60 * 1000;
+    const retention = 24 * 60 * minute;
+    const newestPerBucket = new Map();
+
+    for (const entry of history || []) {
+        const age = now - entry.timestamp;
+        if (age > retention + (2 * minute)) continue;
+        // Keep fine detail where it matters for the live 60-minute view, then
+        // progressively compact older samples. This cuts long-running memory
+        // usage dramatically without sacrificing the 6h/12h/24h comparisons.
+        const bucketSize = age <= 70 * minute
+            ? minute
+            : age <= 6 * 60 * minute
+                ? 5 * minute
+                : 15 * minute;
+        const bucket = `${bucketSize}:${Math.floor(entry.timestamp / bucketSize)}`;
+        const previous = newestPerBucket.get(bucket);
+        if (!previous || entry.timestamp > previous.timestamp) newestPerBucket.set(bucket, entry);
+    }
+
+    return [...newestPerBucket.values()].sort((left, right) => left.timestamp - right.timestamp);
+}
+
 function addHourlyGains(members, historyStore = pointHistory, trackingStartStore = pointTrackingStart) {
     const now = Date.now();
     const minute = 60 * 1000;
-    const historyRetention = 24 * 60 * minute;
 
     return members.map(member => {
         const history = historyStore.get(member.userId) || [];
@@ -203,7 +230,7 @@ function addHourlyGains(members, historyStore = pointHistory, trackingStartStore
             history.push({ timestamp: now, points: member.points });
             queueStateSave();
         }
-        historyStore.set(member.userId, history.filter(entry => entry.timestamp >= now - historyRetention - (2 * minute)));
+        historyStore.set(member.userId, compactPointHistory(history, now));
 
         return {
             ...member,
