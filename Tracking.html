@@ -13,7 +13,7 @@
         .page { max-width: 1550px; margin: 0 auto; }
         .game-picker { display: grid; min-height: calc(100vh - 56px); place-items: center; }
         .game-picker.is-leaving { pointer-events: none; animation: picker-out .38s cubic-bezier(.22,.8,.25,1) forwards; }
-        #list-view:not([hidden]), #detail-view:not([hidden]), .minecraft-view:not([hidden]), .game-nav:not([hidden]) { animation: selected-view-in .42s cubic-bezier(.22,.8,.25,1) both; }
+        #list-view:not([hidden]), #detail-view:not([hidden]), .minecraft-view:not([hidden]), .roblox-maintenance-view:not([hidden]), .game-nav:not([hidden]) { animation: selected-view-in .42s cubic-bezier(.22,.8,.25,1) both; }
         @keyframes picker-out { to { opacity: 0; transform: translateY(-20px) scale(.975); filter: blur(5px); } }
         @keyframes selected-view-in { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         .game-picker-panel { position: relative; isolation: isolate; width: min(100%, 1060px); overflow: hidden; padding: clamp(30px, 6vw, 66px); border: 1px solid rgba(146, 133, 230, .4); border-radius: 30px; background: linear-gradient(125deg, rgba(26, 18, 62, .97), rgba(10, 21, 35, .98) 58%, rgba(10, 37, 44, .96)); box-shadow: 0 34px 110px rgba(0, 0, 0, .56), inset 0 1px rgba(255,255,255,.1); text-align: center; }
@@ -33,6 +33,9 @@
         .game-card.minecraft { border-color: rgba(89, 224, 144, .34); background: linear-gradient(145deg, rgba(27, 111, 67, .8), rgba(17, 54, 42, .96) 60%, rgba(12, 31, 30, .98)); }
         .game-card.minecraft::after { border-color: rgba(129, 245, 163, .28); background: radial-gradient(circle at 35% 35%, rgba(107, 238, 139, .31), rgba(23, 145, 73, .1) 48%, transparent 70%); }
         .game-card.minecraft:hover { border-color: #72efa2; box-shadow: 0 24px 48px rgba(33, 151, 79, .3), 0 0 0 1px rgba(182,255,198,.12); }
+        .game-card.maintenance { border-color: rgba(255, 158, 92, .35); background: linear-gradient(145deg, rgba(113, 56, 39, .78), rgba(49, 27, 35, .96) 60%, rgba(25, 20, 31, .98)); }
+        .game-card.maintenance::after { border-color: rgba(255, 190, 125, .29); background: radial-gradient(circle at 35% 35%, rgba(255, 159, 98, .32), rgba(184, 70, 69, .1) 48%, transparent 70%); }
+        .game-card.maintenance:hover { border-color: #ffb26f; box-shadow: 0 24px 48px rgba(176, 76, 57, .3), 0 0 0 1px rgba(255,211,166,.12); }
         .game-card-content { position: relative; z-index: 1; display: flex; height: 100%; flex-direction: column; }
         .game-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
         .game-card-icon { display: grid; width: 52px; height: 52px; place-items: center; border: 1px solid rgba(213, 199, 255, .52); border-radius: 15px; background: rgba(18, 17, 53, .6); color: #eeeaff; font-size: 25px; box-shadow: inset 0 1px rgba(255,255,255,.16), 0 8px 22px rgba(0,0,0,.18); }
@@ -40,6 +43,8 @@
         .game-card-label { display: inline-flex; align-items: center; gap: 7px; margin-top: 3px; border: 1px solid rgba(211, 200, 255, .23); border-radius: 999px; padding: 7px 10px; color: #d7d1ee; background: rgba(8, 10, 28, .24); font-size: 10px; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; }
         .game-card-label.live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #56f39b; box-shadow: 0 0 12px #56f39b; }
         .game-card-label.soon { color: #c3d9c8; }
+        .game-card-label.maintenance { color: #ffe0be; border-color: rgba(255, 190, 125, .31); }
+        .game-card-label.maintenance::before { content: ""; width: 7px; height: 7px; border-radius: 2px; background: #ffb468; box-shadow: 0 0 12px rgba(255,180,104,.76); }
         .game-card strong { display: block; margin-top: 27px; color: #fff; font-size: 31px; letter-spacing: -.04em; }
         .game-card span:last-child { display: block; max-width: 315px; margin-top: 8px; color: #d0d1df; font-size: 13px; line-height: 1.55; }
         .game-card-cta { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 23px; color: #fff; font-size: 12px; font-weight: 850; letter-spacing: .04em; }
@@ -59,6 +64,9 @@
         .minecraft-view { max-width: 980px; margin: 56px auto 0; padding: clamp(28px, 6vw, 62px); border: 1px solid rgba(85, 190, 112, .35); border-radius: 20px; background: linear-gradient(135deg, rgba(18, 52, 34, .92), rgba(12, 20, 20, .96)); box-shadow: 0 24px 70px rgba(0,0,0,.38); text-align: center; }
         .minecraft-icon { display: grid; width: 68px; height: 68px; place-items: center; margin: 0 auto 18px; border: 1px solid rgba(125, 244, 159, .55); border-radius: 16px; background: linear-gradient(135deg, #2d8b4c, #16442a); color: #eaffee; font-size: 32px; box-shadow: 0 0 28px rgba(72, 227, 139, .2); }
         .minecraft-view p { max-width: 470px; margin: 12px auto 0; color: #acbcaf; line-height: 1.6; }
+        .roblox-maintenance-view { max-width: 980px; margin: 56px auto 0; padding: clamp(28px, 6vw, 62px); border: 1px solid rgba(255, 163, 101, .38); border-radius: 20px; background: linear-gradient(135deg, rgba(69, 35, 42, .94), rgba(23, 20, 31, .97)); box-shadow: 0 24px 70px rgba(0,0,0,.38); text-align: center; }
+        .roblox-maintenance-icon { display: grid; width: 68px; height: 68px; place-items: center; margin: 0 auto 18px; border: 1px solid rgba(255, 191, 129, .58); border-radius: 16px; background: linear-gradient(135deg, #a95445, #59303b); color: #fff3e8; font-size: 30px; box-shadow: 0 0 28px rgba(232,116,79,.2); }
+        .roblox-maintenance-view p { max-width: 530px; margin: 12px auto 0; color: #d0b5b3; line-height: 1.65; }
         #list-view::before, #detail-view::before { content: ""; display: block; height: 4px; margin-bottom: 22px; border-radius: 999px; background: linear-gradient(90deg, #8b5cf6 0 22%, #22d3ee 22% 46%, #48e38b 46% 68%, #f6c84e 68% 84%, #fb7185 84%); box-shadow: 0 0 22px rgba(139,92,246,.4); }
         .topbar { position: relative; display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 20px; padding: 4px 0 3px 17px; }
         .topbar::before { content: ""; position: absolute; inset: 3px auto 3px 0; width: 4px; border-radius: 999px; background: linear-gradient(#a78bfa, #22d3ee 55%, #48e38b); box-shadow: 0 0 18px rgba(112,102,255,.48); }
@@ -154,14 +162,14 @@
         <section class="game-picker-panel">
             <div class="game-picker-topline">T0IXHUB · TRACKING PLATFORM</div>
             <h1>Choose <span>Game</span></h1>
-            <p class="game-picker-copy">Choose where you want to go. Your selected tracker loads on demand, so inactive games never use your server resources.</p>
+            <p class="game-picker-copy">Choose where you want to go. Inactive sections remain idle, so your server resources stay available for the services you need.</p>
             <div class="game-cards">
-                <button class="game-card" data-game="roblox" type="button">
+                <button class="game-card maintenance" data-game="roblox" type="button">
                     <span class="game-card-content">
-                        <span class="game-card-header"><span class="game-card-icon">◆</span><span class="game-card-label live">Live now</span></span>
+                        <span class="game-card-header"><span class="game-card-icon">◆</span><span class="game-card-label maintenance">Maintenance</span></span>
                         <strong>Roblox</strong>
-                        <span>Pet Simulator 99 clan battles, league rankings, point history, and public enchant loadouts.</span>
-                        <span class="game-card-cta">Open Roblox tracker <b>→</b></span>
+                        <span>The Pet Simulator 99 tracker is temporarily paused while this server is reserved for other services.</span>
+                        <span class="game-card-cta">View maintenance status <b>→</b></span>
                     </span>
                 </button>
                 <button class="game-card minecraft" data-game="minecraft" type="button">
@@ -173,13 +181,13 @@
                     </span>
                 </button>
             </div>
-            <p class="game-picker-note"><span><i></i> On-demand loading</span><span>·</span><span>Private access enabled</span></p>
+            <p class="game-picker-note"><span><i></i> Idle-by-default</span><span>·</span><span>Private access enabled</span></p>
         </section>
     </main>
     <nav class="game-nav" id="game-nav" hidden>
         <span class="game-nav-brand">T0ixHub Tracking</span>
         <div class="game-nav-buttons">
-            <button class="game-switch" data-game="roblox" type="button">Roblox</button>
+            <button class="game-switch" data-game="roblox" type="button">Roblox · Maintenance</button>
             <button class="game-switch" data-game="minecraft" type="button">Minecraft</button>
         </div>
     </nav>
@@ -236,7 +244,14 @@
         <h1>Minecraft account services</h1>
         <p>This is where your Minecraft bot-service controls will live. Roblox tracking remains paused until you switch back to Roblox.</p>
     </main>
+    <main class="roblox-maintenance-view" id="roblox-maintenance-view" hidden>
+        <div class="roblox-maintenance-icon">◆</div>
+        <p class="eyebrow">ROBLOX · MAINTENANCE MODE</p>
+        <h1>Tracker temporarily paused</h1>
+        <p>No Roblox points, profiles, inventories, or leaderboard data are being fetched. The tracker is fully idle so this server can be used for your upcoming account services.</p>
+    </main>
     <script>
+        const robloxMaintenanceMode = true;
         const refreshSeconds = 5;
         let secondsRemaining = refreshSeconds;
         let isRefreshing = false;
@@ -300,16 +315,18 @@
             loadRoster();
         };
         const selectGame = game => {
-            const isRoblox = game === 'roblox';
+            const isRobloxTracker = game === 'roblox' && !robloxMaintenanceMode;
+            const isRobloxMaintenance = game === 'roblox' && robloxMaintenanceMode;
             const picker = document.getElementById('game-picker');
             const showSelectedGame = () => {
                 activeGame = game;
                 document.getElementById('game-nav').hidden = false;
-                document.getElementById('list-view').hidden = !isRoblox;
+                document.getElementById('list-view').hidden = !isRobloxTracker;
                 document.getElementById('detail-view').hidden = true;
-                document.getElementById('minecraft-view').hidden = isRoblox;
+                document.getElementById('minecraft-view').hidden = game !== 'minecraft';
+                document.getElementById('roblox-maintenance-view').hidden = !isRobloxMaintenance;
                 document.querySelectorAll('.game-switch').forEach(button => button.classList.toggle('active', button.dataset.game === game));
-                if (isRoblox) {
+                if (isRobloxTracker) {
                     if (robloxPrepared) loadRoster();
                     else prepareRoblox();
                 }

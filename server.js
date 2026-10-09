@@ -6,6 +6,9 @@ const crypto = require('crypto');
 const port = Number(process.env.PORT) || 3000;
 const htmlPath = path.join(__dirname, 'Tracking.html');
 const faviconPath = path.join(__dirname, 'favicon.svg');
+// Keep the public shell available while Roblox tracking is paused. Set this
+// environment variable to "false" when the tracker is ready to return.
+const robloxMaintenanceMode = process.env.ROBLOX_MAINTENANCE !== 'false';
 // Comma-separated access keys supplied only by the deployment environment.
 // Leaving this unset keeps local development open.
 const accessKeys = (process.env.TRACKER_ACCESS_KEYS || '')
@@ -774,7 +777,7 @@ async function getClanData(clanId = 'c0ld') {
     };
 }
 
-loadState();
+if (!robloxMaintenanceMode) loadState();
 
 const server = http.createServer(async (request, response) => {
     const url = new URL(request.url, `http://${request.headers.host}`);
@@ -834,6 +837,15 @@ const server = http.createServer(async (request, response) => {
             response.writeHead(200, { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=604800' });
             response.end(icon);
         });
+        return;
+    }
+
+    // Do not allow an overlooked UI path or direct request to wake the Roblox
+    // polling, name/avatar lookup, history, or enchant-scan code while the
+    // section is under maintenance.
+    if (robloxMaintenanceMode && url.pathname.startsWith('/api/')) {
+        response.writeHead(503, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+        response.end(JSON.stringify({ error: 'The Roblox tracker is currently under maintenance.' }));
         return;
     }
 
@@ -925,5 +937,6 @@ server.listen(port, () => {
 
 process.on('SIGINT', () => {
     console.log('\nSaving tracker state…');
-    saveState().finally(() => server.close(() => process.exit(0)));
+    (robloxMaintenanceMode ? Promise.resolve() : saveState())
+        .finally(() => server.close(() => process.exit(0)));
 });
